@@ -26,45 +26,33 @@ export function AuthProvider({ children }: AuthProviderProps) {
 
   // Check for existing session on mount
   useEffect(() => {
-    const checkAuth = async () => {
+    const checkAuth = () => {
       try {
-        const token = localStorage.getItem('auth_token');
-        if (token) {
-          // Verify token with backend
-          const response = await fetch('/api/auth/verify', {
-            headers: {
-              'Authorization': `Bearer ${token}`,
-            },
+        const userData = localStorage.getItem('user_data');
+        if (userData) {
+          const user = JSON.parse(userData);
+          setAuthState({
+            user,
+            isAuthenticated: true,
+            isLoading: false,
+            error: null,
           });
-
-          if (response.ok) {
-            const userData = await response.json();
-            setAuthState({
-              user: userData.user,
-              isAuthenticated: true,
-              isLoading: false,
-              error: null,
-            });
-          } else {
-            // Invalid token, remove it
-            localStorage.removeItem('auth_token');
-            setAuthState({
-              user: null,
-              isAuthenticated: false,
-              isLoading: false,
-              error: null,
-            });
-          }
         } else {
-          setAuthState(prev => ({ ...prev, isLoading: false }));
+          setAuthState({
+            user: null,
+            isAuthenticated: false,
+            isLoading: false,
+            error: null,
+          });
         }
       } catch (error) {
         console.error('Auth check failed:', error);
+        localStorage.removeItem('user_data');
         setAuthState({
           user: null,
           isAuthenticated: false,
           isLoading: false,
-          error: 'Failed to verify authentication',
+          error: 'Failed to load user data',
         });
       }
     };
@@ -76,38 +64,44 @@ export function AuthProvider({ children }: AuthProviderProps) {
     setAuthState(prev => ({ ...prev, isLoading: true, error: null }));
 
     try {
-      const response = await fetch('/api/auth/login', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(credentials),
-      });
+      // Check if user exists in localStorage
+      const existingUsers = JSON.parse(localStorage.getItem('users') || '[]');
+      const user = existingUsers.find((u: any) => 
+        u.email === credentials.email && u.password === credentials.password
+      );
 
-      const data = await response.json();
-
-      if (response.ok && data.success) {
-        // Store token
-        localStorage.setItem('auth_token', data.token);
+      if (user) {
+        // Update last login
+        const updatedUser = {
+          ...user,
+          lastLoginAt: new Date().toISOString(),
+        };
+        
+        // Update user in storage
+        const updatedUsers = existingUsers.map((u: any) => 
+          u.email === user.email ? updatedUser : u
+        );
+        localStorage.setItem('users', JSON.stringify(updatedUsers));
+        localStorage.setItem('user_data', JSON.stringify(updatedUser));
         
         setAuthState({
-          user: data.user,
+          user: updatedUser,
           isAuthenticated: true,
           isLoading: false,
           error: null,
         });
 
-        return { success: true, user: data.user, token: data.token };
+        return { success: true, user: updatedUser };
       } else {
         setAuthState(prev => ({
           ...prev,
           isLoading: false,
-          error: data.error || 'Login failed',
+          error: 'Invalid email or password',
         }));
-        return { success: false, error: data.error || 'Login failed' };
+        return { success: false, error: 'Invalid email or password' };
       }
     } catch (error) {
-      const errorMessage = 'Network error. Please try again.';
+      const errorMessage = 'Login failed. Please try again.';
       setAuthState(prev => ({
         ...prev,
         isLoading: false,
@@ -121,38 +115,44 @@ export function AuthProvider({ children }: AuthProviderProps) {
     setAuthState(prev => ({ ...prev, isLoading: true, error: null }));
 
     try {
-      const response = await fetch('/api/auth/signup', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(credentials),
-      });
+      // Check if user already exists
+      const existingUsers = JSON.parse(localStorage.getItem('users') || '[]');
+      const existingUser = existingUsers.find((u: any) => u.email === credentials.email);
 
-      const data = await response.json();
-
-      if (response.ok && data.success) {
-        // Store token
-        localStorage.setItem('auth_token', data.token);
-        
-        setAuthState({
-          user: data.user,
-          isAuthenticated: true,
-          isLoading: false,
-          error: null,
-        });
-
-        return { success: true, user: data.user, token: data.token };
-      } else {
+      if (existingUser) {
         setAuthState(prev => ({
           ...prev,
           isLoading: false,
-          error: data.error || 'Sign up failed',
+          error: 'User with this email already exists',
         }));
-        return { success: false, error: data.error || 'Sign up failed' };
+        return { success: false, error: 'User with this email already exists' };
       }
+
+      // Create new user
+      const newUser = {
+        id: Date.now().toString(),
+        name: credentials.name,
+        email: credentials.email,
+        password: credentials.password, // In a real app, this would be hashed
+        createdAt: new Date().toISOString(),
+        lastLoginAt: new Date().toISOString(),
+      };
+
+      // Save user to localStorage
+      const updatedUsers = [...existingUsers, newUser];
+      localStorage.setItem('users', JSON.stringify(updatedUsers));
+      localStorage.setItem('user_data', JSON.stringify(newUser));
+      
+      setAuthState({
+        user: newUser,
+        isAuthenticated: true,
+        isLoading: false,
+        error: null,
+      });
+
+      return { success: true, user: newUser };
     } catch (error) {
-      const errorMessage = 'Network error. Please try again.';
+      const errorMessage = 'Sign up failed. Please try again.';
       setAuthState(prev => ({
         ...prev,
         isLoading: false,
@@ -163,7 +163,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
   };
 
   const logout = () => {
-    localStorage.removeItem('auth_token');
+    localStorage.removeItem('user_data');
     setAuthState({
       user: null,
       isAuthenticated: false,
