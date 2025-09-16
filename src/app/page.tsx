@@ -58,7 +58,7 @@ export default function Home() {
     <div className="min-h-screen flex items-center justify-center py-4 sm:py-8">
       <div className="container mx-auto px-2 sm:px-4 max-w-7xl w-full">
         {/* Header with Clock, Auth, and Theme Toggle */}
-        <div className="flex flex-col sm:flex-row items-center justify-end mb-4 sm:mb-6 gap-2 sm:gap-4">
+        <div className="fixed top-4 right-4 z-50 flex items-center gap-2">
           <Clock />
           {isAuthenticated ? (
             <Button
@@ -86,7 +86,7 @@ export default function Home() {
 
         {/* User Profile Dropdown */}
         {showUserProfile && isAuthenticated && (
-          <div className="fixed top-20 right-4 z-50 sm:top-16 sm:right-4">
+          <div className="fixed top-16 right-4 z-50">
             <UserProfile />
           </div>
         )}
