@@ -84,7 +84,9 @@ export function MedicationTable({
                 <div className="flex items-center gap-2">
                   {medication.name}
                   {isLowStock(medication.currentPills, medication.totalPills) && (
-                    <AlertTriangle className="h-4 w-4 text-orange-500" title="Low stock" />
+                    <span title="Low stock">
+                      <AlertTriangle className="h-4 w-4 text-orange-500" />
+                    </span>
                   )}
                 </div>
               </TableCell>
