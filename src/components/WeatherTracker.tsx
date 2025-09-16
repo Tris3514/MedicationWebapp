@@ -59,6 +59,20 @@ export function WeatherTracker({ isActive = false }: WeatherTrackerProps = {}) {
     }
   }, [locations]);
 
+  const fetchWeatherData = useCallback(async (location: WeatherLocation) => {
+    setLoading(prev => ({ ...prev, [location.id]: true }));
+    
+    try {
+      const realWeatherData = await fetchRealWeatherData(location);
+      setWeatherData(prev => ({ ...prev, [location.id]: realWeatherData }));
+    } catch (error) {
+      console.error("Failed to fetch weather data:", error);
+      // Show error state or fallback
+    } finally {
+      setLoading(prev => ({ ...prev, [location.id]: false }));
+    }
+  }, []);
+
   // Auto-refresh weather data when tab becomes active
   useEffect(() => {
     if (isActive && locations.length > 0) {
@@ -255,19 +269,6 @@ export function WeatherTracker({ isActive = false }: WeatherTrackerProps = {}) {
     }
   };
 
-  const fetchWeatherData = useCallback(async (location: WeatherLocation) => {
-    setLoading(prev => ({ ...prev, [location.id]: true }));
-    
-    try {
-      const realWeatherData = await fetchRealWeatherData(location);
-      setWeatherData(prev => ({ ...prev, [location.id]: realWeatherData }));
-    } catch (error) {
-      console.error("Failed to fetch weather data:", error);
-      // Show error state or fallback
-    } finally {
-      setLoading(prev => ({ ...prev, [location.id]: false }));
-    }
-  }, []);
 
   const addLocation = async (formData: LocationFormData) => {
     if (!formData.name.trim()) return;
