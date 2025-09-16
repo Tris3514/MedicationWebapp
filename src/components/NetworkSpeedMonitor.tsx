@@ -4,6 +4,7 @@ import { useState, useEffect, useCallback } from "react";
 import { Button } from "@/components/ui/button";
 import { Download, Upload, Wifi, RefreshCw, Zap } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { useUserData } from "@/hooks/useUserData";
 
 interface SpeedTestResult {
   downloadSpeed: number; // Mbps
@@ -19,6 +20,7 @@ interface NetworkSpeedMonitorProps {
 }
 
 export function NetworkSpeedMonitor({ className }: NetworkSpeedMonitorProps) {
+  const { isAuthenticated, getData, setData } = useUserData();
   const [currentResult, setCurrentResult] = useState<SpeedTestResult | null>(null);
   const [isTestingDownload, setIsTestingDownload] = useState(false);
   const [isTestingUpload, setIsTestingUpload] = useState(false);
@@ -203,8 +205,12 @@ export function NetworkSpeedMonitor({ className }: NetworkSpeedMonitorProps) {
       setLastTestTime(new Date());
       setTestProgress(100);
       
-      // Save to localStorage
-      localStorage.setItem('network-speed-test', JSON.stringify(result));
+      // Save to user-specific data if authenticated, otherwise fallback to localStorage
+      if (isAuthenticated) {
+        setData('networkSpeedTest', result);
+      } else {
+        localStorage.setItem('network-speed-test', JSON.stringify(result));
+      }
       
     } catch (error) {
       console.error('Speed test failed:', error);
@@ -215,20 +221,33 @@ export function NetworkSpeedMonitor({ className }: NetworkSpeedMonitorProps) {
 
   // Load last test result from localStorage
   useEffect(() => {
-    const saved = localStorage.getItem('network-speed-test');
-    if (saved) {
-      try {
-        const result = JSON.parse(saved);
+    if (isAuthenticated) {
+      // Load from user-specific data
+      const saved = getData('networkSpeedTest');
+      if (saved) {
         setCurrentResult({
-          ...result,
-          timestamp: new Date(result.timestamp)
+          ...saved,
+          timestamp: new Date(saved.timestamp)
         });
-        setLastTestTime(new Date(result.timestamp));
-      } catch (error) {
-        console.error('Failed to load speed test result:', error);
+        setLastTestTime(new Date(saved.timestamp));
+      }
+    } else {
+      // Fallback to localStorage for non-authenticated users
+      const saved = localStorage.getItem('network-speed-test');
+      if (saved) {
+        try {
+          const result = JSON.parse(saved);
+          setCurrentResult({
+            ...result,
+            timestamp: new Date(result.timestamp)
+          });
+          setLastTestTime(new Date(result.timestamp));
+        } catch (error) {
+          console.error('Failed to load speed test result:', error);
+        }
       }
     }
-  }, []);
+  }, [isAuthenticated, getData]);
 
   // Auto-test on component mount if no recent data
   useEffect(() => {

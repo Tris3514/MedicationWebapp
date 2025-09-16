@@ -32,6 +32,7 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { getRandomMaltaSMEs } from "@/data/maltaSMEDatabase";
+import { useUserData } from "@/hooks/useUserData";
 
 const STORAGE_KEY = "malta-business-data";
 const SAVED_BUSINESSES_KEY = "malta-saved-businesses";
@@ -55,6 +56,7 @@ const businessCategories = [
 ];
 
 export function MaltaBusinessScraper() {
+  const { isAuthenticated, getData, setData } = useUserData();
   const [businesses, setBusinesses] = useState<Business[]>([]);
   const [filteredBusinesses, setFilteredBusinesses] = useState<Business[]>([]);
   const [savedBusinesses, setSavedBusinesses] = useState<Business[]>([]);
@@ -77,41 +79,68 @@ export function MaltaBusinessScraper() {
   // Load saved and blacklisted businesses from localStorage
   useEffect(() => {
     try {
-      const savedData = localStorage.getItem(SAVED_BUSINESSES_KEY);
-      if (savedData) {
-        const parsed = JSON.parse(savedData);
-        setSavedBusinesses(parsed.map((b: any) => ({
+      if (isAuthenticated) {
+        // Load from user-specific data
+        const savedData = getData('savedBusinesses') || [];
+        const blacklistedData = getData('blacklistedBusinesses') || [];
+        
+        setSavedBusinesses(savedData.map((b: any) => ({
           ...b,
           lastUpdated: new Date(b.lastUpdated)
         })));
-      }
+        
+        setBlacklistedBusinesses(blacklistedData.map((b: any) => ({
+          ...b,
+          lastUpdated: new Date(b.lastUpdated)
+        })));
+      } else {
+        // Fallback to localStorage for non-authenticated users
+        const savedData = localStorage.getItem(SAVED_BUSINESSES_KEY);
+        if (savedData) {
+          const parsed = JSON.parse(savedData);
+          setSavedBusinesses(parsed.map((b: any) => ({
+            ...b,
+            lastUpdated: new Date(b.lastUpdated)
+          })));
+        }
 
-      const blacklistedData = localStorage.getItem(BLACKLISTED_BUSINESSES_KEY);
-      if (blacklistedData) {
-        const parsed = JSON.parse(blacklistedData);
-        setBlacklistedBusinesses(parsed.map((b: any) => ({
-          ...b,
-          lastUpdated: new Date(b.lastUpdated)
-        })));
+        const blacklistedData = localStorage.getItem(BLACKLISTED_BUSINESSES_KEY);
+        if (blacklistedData) {
+          const parsed = JSON.parse(blacklistedData);
+          setBlacklistedBusinesses(parsed.map((b: any) => ({
+            ...b,
+            lastUpdated: new Date(b.lastUpdated)
+          })));
+        }
       }
     } catch (error) {
       console.error('Failed to load saved/blacklisted businesses:', error);
     }
-  }, []);
+  }, [isAuthenticated, getData]);
 
   // Save to localStorage whenever saved businesses change
   useEffect(() => {
     if (savedBusinesses.length > 0) {
-      localStorage.setItem(SAVED_BUSINESSES_KEY, JSON.stringify(savedBusinesses));
+      // Save to user-specific data if authenticated, otherwise fallback to localStorage
+      if (isAuthenticated) {
+        setData('savedBusinesses', savedBusinesses);
+      } else {
+        localStorage.setItem(SAVED_BUSINESSES_KEY, JSON.stringify(savedBusinesses));
+      }
     }
-  }, [savedBusinesses]);
+  }, [savedBusinesses, isAuthenticated, setData]);
 
   // Save to localStorage whenever blacklisted businesses change
   useEffect(() => {
     if (blacklistedBusinesses.length > 0) {
-      localStorage.setItem(BLACKLISTED_BUSINESSES_KEY, JSON.stringify(blacklistedBusinesses));
+      // Save to user-specific data if authenticated, otherwise fallback to localStorage
+      if (isAuthenticated) {
+        setData('blacklistedBusinesses', blacklistedBusinesses);
+      } else {
+        localStorage.setItem(BLACKLISTED_BUSINESSES_KEY, JSON.stringify(blacklistedBusinesses));
+      }
     }
-  }, [blacklistedBusinesses]);
+  }, [blacklistedBusinesses, isAuthenticated, setData]);
 
   // Scrape real Malta business data from multiple sources
   const scrapeRealMaltaBusinesses = useCallback(async (category: string = ""): Promise<Business[]> => {
