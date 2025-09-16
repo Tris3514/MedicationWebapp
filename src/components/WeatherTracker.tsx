@@ -74,7 +74,7 @@ export function WeatherTracker({ isActive = false }: WeatherTrackerProps = {}) {
         }
       });
     }
-  }, [isActive, locations, weatherData]);
+  }, [isActive, locations, weatherData, fetchWeatherData]);
 
   const generateId = () => {
     return Date.now().toString() + Math.random().toString(36).substr(2, 9);
@@ -255,7 +255,7 @@ export function WeatherTracker({ isActive = false }: WeatherTrackerProps = {}) {
     }
   };
 
-  const fetchWeatherData = async (location: WeatherLocation) => {
+  const fetchWeatherData = useCallback(async (location: WeatherLocation) => {
     setLoading(prev => ({ ...prev, [location.id]: true }));
     
     try {
@@ -267,7 +267,7 @@ export function WeatherTracker({ isActive = false }: WeatherTrackerProps = {}) {
     } finally {
       setLoading(prev => ({ ...prev, [location.id]: false }));
     }
-  };
+  }, []);
 
   const addLocation = async (formData: LocationFormData) => {
     if (!formData.name.trim()) return;
