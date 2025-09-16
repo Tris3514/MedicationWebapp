@@ -217,7 +217,7 @@ export function NetworkSpeedMonitor({ className }: NetworkSpeedMonitorProps) {
     } finally {
       setTestProgress(0);
     }
-  }, [testDownloadSpeed, testUploadSpeed, testPing]);
+  }, [testDownloadSpeed, testUploadSpeed, testPing, isAuthenticated, setData]);
 
   // Load last test result from localStorage
   useEffect(() => {

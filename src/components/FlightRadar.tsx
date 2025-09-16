@@ -402,7 +402,7 @@ export function FlightRadar() {
     } finally {
       setLoading(false);
     }
-  }, [userLocation, fetchRealFlightData, lastApiCall, totalFlightsTracked, trackedFlightIds]);
+  }, [userLocation, fetchRealFlightData, lastApiCall, totalFlightsTracked, trackedFlightIds, isAuthenticated, setData]);
 
   // Load persisted flight count and tracked IDs on component mount
   useEffect(() => {
