@@ -15,6 +15,7 @@ interface ResetPasswordFormProps {
 }
 
 export function ResetPasswordForm({ token, onSuccess, onBackToLogin }: ResetPasswordFormProps) {
+  const [inputToken, setInputToken] = useState(token || '');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
@@ -23,18 +24,42 @@ export function ResetPasswordForm({ token, onSuccess, onBackToLogin }: ResetPass
   const [isSuccess, setIsSuccess] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [validationErrors, setValidationErrors] = useState<{[key: string]: string}>({});
+  const [isTokenValidated, setIsTokenValidated] = useState(!!token);
 
   useEffect(() => {
-    // Verify token on mount
-    const resetTokens = JSON.parse(localStorage.getItem('reset_tokens') || '[]');
-    const validToken = resetTokens.find((t: any) => 
-      t.token === token && t.expiresAt > Date.now()
-    );
+    // Verify token on mount if provided
+    if (token) {
+      const resetTokens = JSON.parse(localStorage.getItem('reset_tokens') || '[]');
+      const validToken = resetTokens.find((t: any) => 
+        t.token === token && t.expiresAt > Date.now()
+      );
 
-    if (!validToken) {
-      setError('Invalid or expired reset link. Please request a new one.');
+      if (validToken) {
+        setIsTokenValidated(true);
+      } else {
+        setError('Invalid or expired reset token.');
+      }
     }
   }, [token]);
+
+  const validateToken = () => {
+    if (!inputToken.trim()) {
+      setError('Please enter a reset token.');
+      return;
+    }
+
+    const resetTokens = JSON.parse(localStorage.getItem('reset_tokens') || '[]');
+    const validToken = resetTokens.find((t: any) => 
+      t.token === inputToken && t.expiresAt > Date.now()
+    );
+
+    if (validToken) {
+      setIsTokenValidated(true);
+      setError(null);
+    } else {
+      setError('Invalid or expired reset token.');
+    }
+  };
 
   const validateForm = (): boolean => {
     const errors: {[key: string]: string} = {};
@@ -68,8 +93,9 @@ export function ResetPasswordForm({ token, onSuccess, onBackToLogin }: ResetPass
     try {
       // Verify token again
       const resetTokens = JSON.parse(localStorage.getItem('reset_tokens') || '[]');
+      const tokenToUse = token || inputToken;
       const validToken = resetTokens.find((t: any) => 
-        t.token === token && t.expiresAt > Date.now()
+        t.token === tokenToUse && t.expiresAt > Date.now()
       );
 
       if (!validToken) {
@@ -94,7 +120,7 @@ export function ResetPasswordForm({ token, onSuccess, onBackToLogin }: ResetPass
       localStorage.setItem('users', JSON.stringify(existingUsers));
 
       // Remove used token
-      const updatedTokens = resetTokens.filter((t: any) => t.token !== token);
+      const updatedTokens = resetTokens.filter((t: any) => t.token !== tokenToUse);
       localStorage.setItem('reset_tokens', JSON.stringify(updatedTokens));
 
       setIsSuccess(true);
@@ -175,6 +201,36 @@ export function ResetPasswordForm({ token, onSuccess, onBackToLogin }: ResetPass
       </CardHeader>
       <CardContent>
         <form onSubmit={handleSubmit} className="space-y-4">
+          {/* Token Field - only show if no token provided initially */}
+          {!token && (
+            <div className="space-y-2">
+              <Label htmlFor="token" className="text-sm font-medium">
+                Reset Token
+              </Label>
+              <div className="flex gap-2">
+                <Input
+                  id="token"
+                  type="text"
+                  placeholder="Enter your reset token"
+                  value={inputToken}
+                  onChange={(e) => setInputToken(e.target.value)}
+                  className="flex-1"
+                  disabled={isLoading || isTokenValidated}
+                />
+                {!isTokenValidated && (
+                  <Button
+                    type="button"
+                    onClick={validateToken}
+                    disabled={isLoading || !inputToken.trim()}
+                    variant="outline"
+                  >
+                    Validate
+                  </Button>
+                )}
+              </div>
+            </div>
+          )}
+          
           {/* Password Field */}
           <div className="space-y-2">
             <Label htmlFor="password" className="text-sm font-medium">
@@ -190,7 +246,7 @@ export function ResetPasswordForm({ token, onSuccess, onBackToLogin }: ResetPass
                 onChange={(e) => setPassword(e.target.value)}
                 className={cn("pl-10 pr-10", validationErrors.password && "border-red-500")}
                 required
-                disabled={isLoading}
+                disabled={isLoading || (!token && !isTokenValidated)}
               />
               <button
                 type="button"
@@ -225,7 +281,7 @@ export function ResetPasswordForm({ token, onSuccess, onBackToLogin }: ResetPass
                 onChange={(e) => setConfirmPassword(e.target.value)}
                 className={cn("pl-10 pr-10", validationErrors.confirmPassword && "border-red-500")}
                 required
-                disabled={isLoading}
+                disabled={isLoading || (!token && !isTokenValidated)}
               />
               <button
                 type="button"
@@ -256,7 +312,7 @@ export function ResetPasswordForm({ token, onSuccess, onBackToLogin }: ResetPass
           <Button
             type="submit"
             className="w-full"
-            disabled={isLoading || !password || !confirmPassword}
+            disabled={isLoading || !password || !confirmPassword || (!token && !isTokenValidated)}
           >
             {isLoading ? 'Updating Password...' : 'Update Password'}
           </Button>

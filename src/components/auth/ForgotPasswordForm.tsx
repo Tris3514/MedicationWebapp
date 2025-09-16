@@ -90,15 +90,13 @@ export function ForgotPasswordForm({ onBackToLogin, onSuccess }: ForgotPasswordF
               For this demo, you can use this reset link:
             </p>
             <div className="mt-3 p-2 bg-muted rounded text-xs break-all">
-              <a 
-                href={`/reset-password/${resetToken}`}
-                className="text-primary-enhanced hover:underline"
-                target="_blank"
-                rel="noopener noreferrer"
-              >
-                {typeof window !== 'undefined' ? window.location.origin : ''}/reset-password/{resetToken}
-              </a>
+              <p className="text-primary-enhanced">
+                Reset Token: {resetToken}
+              </p>
             </div>
+            <p className="text-xs text-muted-foreground">
+              Copy this token and use it in the reset form below.
+            </p>
           </div>
           <Button
             variant="outline"

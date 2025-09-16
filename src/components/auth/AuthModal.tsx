@@ -13,12 +13,12 @@ interface AuthModalProps {
   isOpen: boolean;
   onClose: () => void;
   onSuccess?: () => void;
-  defaultMode?: 'login' | 'signup' | 'forgot-password' | 'reset-password';
+  defaultMode?: 'login' | 'signup' | 'forgot-password' | 'reset-password' | 'reset-with-token';
   resetToken?: string;
 }
 
 export function AuthModal({ isOpen, onClose, onSuccess, defaultMode = 'login', resetToken }: AuthModalProps) {
-  const [mode, setMode] = useState<'login' | 'signup' | 'forgot-password' | 'reset-password'>(
+  const [mode, setMode] = useState<'login' | 'signup' | 'forgot-password' | 'reset-password' | 'reset-with-token'>(
     resetToken ? 'reset-password' : defaultMode
   );
 
@@ -49,6 +49,7 @@ export function AuthModal({ isOpen, onClose, onSuccess, defaultMode = 'login', r
             <LoginForm 
               onSwitchToSignUp={() => setMode('signup')} 
               onForgotPassword={() => setMode('forgot-password')}
+              onResetWithToken={() => setMode('reset-with-token')}
               onSuccess={onSuccess}
             />
           ) : mode === 'signup' ? (
@@ -58,6 +59,12 @@ export function AuthModal({ isOpen, onClose, onSuccess, defaultMode = 'login', r
             />
           ) : mode === 'forgot-password' ? (
             <ForgotPasswordForm 
+              onBackToLogin={() => setMode('login')}
+              onSuccess={onSuccess}
+            />
+          ) : mode === 'reset-with-token' ? (
+            <ResetPasswordForm 
+              token=""
               onBackToLogin={() => setMode('login')}
               onSuccess={onSuccess}
             />
