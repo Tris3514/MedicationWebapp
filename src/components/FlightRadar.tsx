@@ -373,9 +373,9 @@ export function FlightRadar() {
         localStorage.setItem(FLIGHT_COUNT_KEY, newTotal.toString());
         
         // Update tracked flight IDs
-        const updatedTrackedIds = new Set([...trackedFlightIds, ...newFlights]);
+        const updatedTrackedIds = new Set([...Array.from(trackedFlightIds), ...newFlights]);
         setTrackedFlightIds(updatedTrackedIds);
-        localStorage.setItem(TRACKED_IDS_KEY, JSON.stringify([...updatedTrackedIds]));
+        localStorage.setItem(TRACKED_IDS_KEY, JSON.stringify(Array.from(updatedTrackedIds)));
       }
       
       // Find nearest airborne aircraft (not on ground)
