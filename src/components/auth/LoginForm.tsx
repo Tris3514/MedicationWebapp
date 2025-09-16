@@ -12,10 +12,11 @@ import { cn } from '@/lib/utils';
 
 interface LoginFormProps {
   onSwitchToSignUp: () => void;
+  onForgotPassword: () => void;
   onSuccess?: () => void;
 }
 
-export function LoginForm({ onSwitchToSignUp, onSuccess }: LoginFormProps) {
+export function LoginForm({ onSwitchToSignUp, onForgotPassword, onSuccess }: LoginFormProps) {
   const { login, isLoading, error, clearError } = useAuth();
   const [credentials, setCredentials] = useState<LoginCredentials>({
     email: '',
@@ -160,6 +161,18 @@ export function LoginForm({ onSwitchToSignUp, onSuccess }: LoginFormProps) {
           >
             {isLoading ? 'Signing In...' : 'Sign In'}
           </Button>
+
+          {/* Forgot Password */}
+          <div className="text-center">
+            <button
+              type="button"
+              onClick={onForgotPassword}
+              className="text-sm text-primary-enhanced hover:text-primary-enhanced/80 font-medium"
+              disabled={isLoading}
+            >
+              Forgot your password?
+            </button>
+          </div>
 
           {/* Switch to Sign Up */}
           <div className="text-center">

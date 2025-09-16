@@ -4,6 +4,8 @@ import { useState } from 'react';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { LoginForm } from './LoginForm';
 import { SignUpForm } from './SignUpForm';
+import { ForgotPasswordForm } from './ForgotPasswordForm';
+import { ResetPasswordForm } from './ResetPasswordForm';
 import { X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
@@ -11,14 +13,17 @@ interface AuthModalProps {
   isOpen: boolean;
   onClose: () => void;
   onSuccess?: () => void;
-  defaultMode?: 'login' | 'signup';
+  defaultMode?: 'login' | 'signup' | 'forgot-password' | 'reset-password';
+  resetToken?: string;
 }
 
-export function AuthModal({ isOpen, onClose, onSuccess, defaultMode = 'login' }: AuthModalProps) {
-  const [mode, setMode] = useState<'login' | 'signup'>(defaultMode);
+export function AuthModal({ isOpen, onClose, onSuccess, defaultMode = 'login', resetToken }: AuthModalProps) {
+  const [mode, setMode] = useState<'login' | 'signup' | 'forgot-password' | 'reset-password'>(
+    resetToken ? 'reset-password' : defaultMode
+  );
 
   const handleClose = () => {
-    setMode(defaultMode);
+    setMode(resetToken ? 'reset-password' : defaultMode);
     onClose();
   };
 
@@ -43,11 +48,23 @@ export function AuthModal({ isOpen, onClose, onSuccess, defaultMode = 'login' }:
           {mode === 'login' ? (
             <LoginForm 
               onSwitchToSignUp={() => setMode('signup')} 
+              onForgotPassword={() => setMode('forgot-password')}
+              onSuccess={onSuccess}
+            />
+          ) : mode === 'signup' ? (
+            <SignUpForm 
+              onSwitchToLogin={() => setMode('login')} 
+              onSuccess={onSuccess}
+            />
+          ) : mode === 'forgot-password' ? (
+            <ForgotPasswordForm 
+              onBackToLogin={() => setMode('login')}
               onSuccess={onSuccess}
             />
           ) : (
-            <SignUpForm 
-              onSwitchToLogin={() => setMode('login')} 
+            <ResetPasswordForm 
+              token={resetToken || ''}
+              onBackToLogin={() => setMode('login')}
               onSuccess={onSuccess}
             />
           )}
