@@ -58,7 +58,7 @@ export default function Home() {
     <div className="min-h-screen flex items-center justify-center py-4 sm:py-8">
       <div className="container mx-auto px-2 sm:px-4 max-w-7xl w-full">
         {/* Header with Clock, Auth, and Theme Toggle */}
-        <div className="flex flex-col sm:flex-row items-start mb-4 sm:mb-6 gap-2 sm:gap-4">
+        <div className="flex flex-col sm:flex-row items-center justify-end mb-4 sm:mb-6 gap-2 sm:gap-4">
           <Clock />
           {isAuthenticated ? (
             <Button
