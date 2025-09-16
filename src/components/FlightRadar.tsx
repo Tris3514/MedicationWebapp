@@ -365,7 +365,7 @@ export function FlightRadar() {
       // Count only new flights (not previously tracked)
       const newFlightIds = new Set(realFlightData.map(flight => flight.id));
       const previouslyTracked = new Set(trackedFlightIds);
-      const newFlights = [...newFlightIds].filter(id => !previouslyTracked.has(id));
+      const newFlights = Array.from(newFlightIds).filter(id => !previouslyTracked.has(id));
       
       if (newFlights.length > 0) {
         const newTotal = totalFlightsTracked + newFlights.length;
