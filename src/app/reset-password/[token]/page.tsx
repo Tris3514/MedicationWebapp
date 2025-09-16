@@ -8,13 +8,13 @@ export async function generateStaticParams() {
 }
 
 interface ResetPasswordPageProps {
-  params: {
+  params: Promise<{
     token: string;
-  };
+  }>;
 }
 
-export default function ResetPasswordPage({ params }: ResetPasswordPageProps) {
-  const { token } = params;
+export default async function ResetPasswordPage({ params }: ResetPasswordPageProps) {
+  const { token } = await params;
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-background">
