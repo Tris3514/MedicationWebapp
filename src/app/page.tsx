@@ -58,32 +58,30 @@ export default function Home() {
     <div className="min-h-screen flex items-center justify-center py-4 sm:py-8">
       <div className="container mx-auto px-2 sm:px-4 max-w-7xl w-full">
         {/* Header with Clock, Auth, and Theme Toggle */}
-        <div className="flex flex-col sm:flex-row items-center justify-between mb-4 sm:mb-6 gap-2 sm:gap-0">
+        <div className="flex flex-col sm:flex-row items-start mb-4 sm:mb-6 gap-2 sm:gap-4">
           <Clock />
-          <div className="flex items-center gap-2">
-            {isAuthenticated ? (
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => setShowUserProfile(!showUserProfile)}
-                className="flex items-center gap-2"
-              >
-                <User className="h-4 w-4" />
-                {user?.name}
-              </Button>
-            ) : (
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => setShowAuthModal(true)}
-                className="flex items-center gap-2"
-              >
-                <LogIn className="h-4 w-4" />
-                Sign In
-              </Button>
-            )}
-            <ThemeToggle />
-          </div>
+          {isAuthenticated ? (
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setShowUserProfile(!showUserProfile)}
+              className="flex items-center gap-2"
+            >
+              <User className="h-4 w-4" />
+              {user?.name}
+            </Button>
+          ) : (
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setShowAuthModal(true)}
+              className="flex items-center gap-2"
+            >
+              <LogIn className="h-4 w-4" />
+              Sign In
+            </Button>
+          )}
+          <ThemeToggle />
         </div>
 
         {/* User Profile Dropdown */}
