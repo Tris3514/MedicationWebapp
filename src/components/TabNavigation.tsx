@@ -63,7 +63,7 @@ export function TabNavigation({ activeTab, onTabChange }: TabNavigationProps) {
         />
       )}
       
-      <div className="fixed top-4 left-4 right-4 sm:right-auto sm:w-auto z-50">
+      <div className="relative sm:fixed sm:top-4 sm:left-4 sm:right-auto sm:w-auto z-50 mb-4 sm:mb-0">
         <div className="flex flex-col sm:flex-row items-stretch sm:items-center">
           {/* Active Tab Display */}
           <div className="glass-card rounded-l-md sm:rounded-l-md rounded-r-md sm:rounded-r-none p-1 flex items-center w-full sm:w-auto">

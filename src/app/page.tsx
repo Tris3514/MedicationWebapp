@@ -38,16 +38,19 @@ export default function Home() {
   return (
     <div className="min-h-screen flex items-center justify-center py-4 sm:py-8">
       <div className="container mx-auto px-2 sm:px-4 max-w-7xl w-full">
+        {/* Header with Clock and Theme Toggle */}
         <div className="flex flex-col sm:flex-row items-center justify-between mb-4 sm:mb-6 gap-2 sm:gap-0">
           <Clock />
           <ThemeToggle />
         </div>
         
+        {/* Tab Navigation */}
         <TabNavigation 
           activeTab={activeTab} 
           onTabChange={handleTabChange} 
         />
         
+        {/* Tab Content */}
         <div className="mt-4 sm:mt-6">
           {renderTabContent()}
         </div>
