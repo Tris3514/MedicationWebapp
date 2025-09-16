@@ -198,7 +198,7 @@ export function MaltaBusinessScraper() {
   };
 
   // Legacy function - keeping for reference
-  const legacyMaltaBusinesses = () => {
+  const legacyMaltaBusinesses = (category: string = "") => {
     const allMaltaBusinesses = [
       // Restaurants & Cafes
       {
