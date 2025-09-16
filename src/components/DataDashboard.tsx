@@ -416,9 +416,9 @@ export function DataDashboard() {
   const getCardGridClasses = (size: CardSize) => {
     switch (size) {
       case "2x1":
-        return "col-span-2 row-span-1";
+        return "col-span-2 sm:col-span-2 lg:col-span-2 row-span-1";
       case "2x2":
-        return "col-span-2 row-span-2";
+        return "col-span-2 sm:col-span-2 lg:col-span-2 row-span-2";
       default:
         return "col-span-1 row-span-1";
     }
@@ -427,7 +427,7 @@ export function DataDashboard() {
   return (
     <div className="space-y-6 relative">
       {/* Prefabs Sidebar Toggle */}
-      <div className="fixed left-0 top-1/2 transform -translate-y-1/2 z-40">
+      <div className="fixed left-0 top-1/2 transform -translate-y-1/2 z-40 hidden sm:block">
         <div 
           className={cn(
             "glass-card transition-all duration-300 flex rounded-r-lg",
@@ -479,9 +479,31 @@ export function DataDashboard() {
         </p>
       </div>
 
+      {/* Mobile Prefabs Section */}
+      <div className="sm:hidden">
+        <div className="glass-card rounded-lg p-4">
+          <div className="text-sm font-semibold text-primary-enhanced mb-3">Add Cards</div>
+          <div className="grid grid-cols-2 gap-2">
+            {cardPrefabs.map((prefab, index) => (
+              <button
+                key={index}
+                onClick={() => addPrefabCard(index)}
+                className="p-3 rounded-lg border border-white/20 hover:bg-white/10 transition-colors text-left"
+              >
+                <div className="flex items-center gap-2 mb-1">
+                  {prefab.icon}
+                  <span className="text-sm font-medium">{prefab.title}</span>
+                </div>
+                <p className="text-xs text-muted-foreground">{prefab.description}</p>
+              </button>
+            ))}
+          </div>
+        </div>
+      </div>
+
       {/* Grid Layout */}
       <div 
-        className="grid grid-cols-6 gap-4 w-full max-w-6xl mx-auto min-h-[400px]"
+        className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2 sm:gap-4 w-full max-w-6xl mx-auto min-h-[400px]"
         onDragOver={(e) => handleDragOver(e)}
         onDrop={(e) => handleDrop(e)}
       >

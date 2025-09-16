@@ -63,26 +63,26 @@ export function TabNavigation({ activeTab, onTabChange }: TabNavigationProps) {
         />
       )}
       
-      <div className="fixed top-4 left-4 z-50">
-        <div className="flex items-center">
+      <div className="fixed top-4 left-4 right-4 sm:right-auto sm:w-auto z-50">
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center">
           {/* Active Tab Display */}
-          <div className="glass-card rounded-l-md p-1 flex items-center">
+          <div className="glass-card rounded-l-md sm:rounded-l-md rounded-r-md sm:rounded-r-none p-1 flex items-center w-full sm:w-auto">
             <button
               onClick={() => {
                 console.log('Toggle clicked, current state:', isExpanded);
                 setIsExpanded(!isExpanded);
               }}
               className={cn(
-                "px-3 py-2 rounded-sm text-sm font-medium transition-all duration-200 relative cursor-pointer",
-                "bg-primary text-primary-foreground shadow-sm flex items-center gap-2"
+                "px-3 py-2 rounded-sm text-sm font-medium transition-all duration-200 relative cursor-pointer w-full sm:w-auto",
+                "bg-primary text-primary-foreground shadow-sm flex items-center justify-between sm:justify-start gap-2"
               )}
             >
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-2 min-w-0">
                 {tabs.find(tab => tab.id === activeTab)?.icon}
-                {tabs.find(tab => tab.id === activeTab)?.label}
+                <span className="truncate">{tabs.find(tab => tab.id === activeTab)?.label}</span>
               </div>
               <div className={cn(
-                "transition-transform duration-200",
+                "transition-transform duration-200 flex-shrink-0",
                 isExpanded ? "rotate-180" : "rotate-0"
               )}>
                 ▼
@@ -92,10 +92,10 @@ export function TabNavigation({ activeTab, onTabChange }: TabNavigationProps) {
 
           {/* Expandable Tab Menu */}
           <div className={cn(
-            "glass-card rounded-r-md p-1 flex items-center transition-all duration-300 overflow-hidden",
-            isExpanded ? "max-w-[600px] opacity-100" : "max-w-0 opacity-0"
+            "glass-card rounded-r-md sm:rounded-r-md rounded-l-md sm:rounded-l-none p-1 flex items-center transition-all duration-300 overflow-hidden w-full sm:w-auto",
+            isExpanded ? "max-w-full sm:max-w-[600px] opacity-100" : "max-w-0 opacity-0"
           )}>
-            <div className="flex items-center gap-1 whitespace-nowrap">
+            <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-1 w-full sm:whitespace-nowrap">
               {tabs.filter(tab => tab.id !== activeTab).map((tab) => (
                 <button
                   key={tab.id}
@@ -108,14 +108,16 @@ export function TabNavigation({ activeTab, onTabChange }: TabNavigationProps) {
                     setIsExpanded(false);
                   }}
                   className={cn(
-                    "px-3 py-2 rounded-sm text-sm font-medium transition-all duration-200 relative",
+                    "px-3 py-2 rounded-sm text-sm font-medium transition-all duration-200 relative w-full sm:w-auto",
                     "hover:bg-white/10 cursor-pointer",
                     previousTab === tab.id && "border-b border-gray-400 dark:border-gray-500",
                     "text-primary-enhanced hover:text-primary-enhanced"
                   )}
                 >
-                  {tab.icon}
-                  <span className="ml-2">{tab.label}</span>
+                  <div className="flex items-center gap-2">
+                    {tab.icon}
+                    <span className="truncate">{tab.label}</span>
+                  </div>
                 </button>
               ))}
             </div>
