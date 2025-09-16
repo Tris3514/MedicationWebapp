@@ -4,6 +4,12 @@ import { useParams } from 'next/navigation';
 import { AuthModal } from '@/components/auth/AuthModal';
 import { useState } from 'react';
 
+// Generate static params for static export
+export async function generateStaticParams() {
+  // Return empty array since we can't pre-generate all possible tokens
+  return [];
+}
+
 export default function ResetPasswordPage() {
   const params = useParams();
   const token = params.token as string;
