@@ -27,6 +27,10 @@ export interface UserData {
 
 const USER_DATA_PREFIX = 'user_data_';
 
+// Debounce timers for each user to prevent excessive saves
+const saveTimers: { [userId: string]: NodeJS.Timeout } = {};
+const SAVE_DEBOUNCE_MS = 500; // 500ms debounce
+
 /**
  * Get user-specific storage key
  */
@@ -63,6 +67,36 @@ export function saveUserData(userId: string, data: UserData): void {
   } catch (error) {
     console.error('Error saving user data:', error);
   }
+}
+
+/**
+ * Save user data with debouncing to prevent excessive writes
+ */
+export function saveUserDataDebounced(userId: string, data: UserData): void {
+  // Clear existing timer for this user
+  if (saveTimers[userId]) {
+    clearTimeout(saveTimers[userId]);
+  }
+  
+  // Set new timer
+  saveTimers[userId] = setTimeout(() => {
+    saveUserData(userId, data);
+    delete saveTimers[userId];
+  }, SAVE_DEBOUNCE_MS);
+}
+
+/**
+ * Save user data immediately (bypasses debouncing)
+ */
+export function saveUserDataImmediate(userId: string, data: UserData): void {
+  // Clear any pending debounced save
+  if (saveTimers[userId]) {
+    clearTimeout(saveTimers[userId]);
+    delete saveTimers[userId];
+  }
+  
+  // Save immediately
+  saveUserData(userId, data);
 }
 
 /**

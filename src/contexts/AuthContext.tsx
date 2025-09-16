@@ -2,7 +2,7 @@
 
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { User, AuthState, LoginCredentials, SignUpCredentials, AuthResponse } from '@/types/auth';
-import { migrateToUserData, getUserData, saveUserData, clearUserData } from '@/utils/userDataManager';
+import { migrateToUserData, getUserData, saveUserData, saveUserDataImmediate, clearUserData } from '@/utils/userDataManager';
 
 interface AuthContextType extends AuthState {
   login: (credentials: LoginCredentials) => Promise<AuthResponse>;
@@ -172,6 +172,16 @@ export function AuthProvider({ children }: AuthProviderProps) {
   };
 
   const logout = () => {
+    // Save any pending data immediately before clearing
+    if (authState.user?.id) {
+      // Force save any pending debounced saves
+      const currentData = getUserData(authState.user.id);
+      saveUserDataImmediate(authState.user.id, currentData);
+      
+      // Clear user data
+      clearUserData(authState.user.id);
+    }
+    
     localStorage.removeItem('user_data');
     setAuthState({
       user: null,

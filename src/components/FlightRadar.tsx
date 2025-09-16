@@ -25,7 +25,7 @@ const FLIGHT_COUNT_KEY = "flight-radar-total-count";
 const TRACKED_IDS_KEY = "flight-radar-tracked-ids";
 
 export function FlightRadar() {
-  const { isAuthenticated, getData, setData } = useUserData();
+  const { isAuthenticated, getData, setData, setDataImmediate } = useUserData();
   const [userLocation, setUserLocation] = useState<UserLocation | null>(null);
   const [flights, setFlights] = useState<FlightData[]>([]);
   const [nearestFlight, setNearestFlight] = useState<FlightData | null>(null);
@@ -382,8 +382,8 @@ export function FlightRadar() {
         
         // Save to user-specific data if authenticated, otherwise fallback to localStorage
         if (isAuthenticated) {
-          setData('flightCount', newTotal);
-          setData('trackedFlightIds', Array.from(updatedTrackedIds));
+          setDataImmediate('flightCount', newTotal);
+          setDataImmediate('trackedFlightIds', Array.from(updatedTrackedIds));
         } else {
           localStorage.setItem(FLIGHT_COUNT_KEY, newTotal.toString());
           localStorage.setItem(TRACKED_IDS_KEY, JSON.stringify(Array.from(updatedTrackedIds)));
@@ -402,7 +402,7 @@ export function FlightRadar() {
     } finally {
       setLoading(false);
     }
-  }, [userLocation, fetchRealFlightData, lastApiCall, totalFlightsTracked, trackedFlightIds, isAuthenticated, setData]);
+  }, [userLocation, fetchRealFlightData, lastApiCall, totalFlightsTracked, trackedFlightIds, isAuthenticated, setData, setDataImmediate]);
 
   // Load persisted flight count and tracked IDs on component mount
   useEffect(() => {
@@ -478,8 +478,8 @@ export function FlightRadar() {
     
     // Save to user-specific data if authenticated, otherwise fallback to localStorage
     if (isAuthenticated) {
-      setData('flightCount', 0);
-      setData('trackedFlightIds', []);
+      setDataImmediate('flightCount', 0);
+      setDataImmediate('trackedFlightIds', []);
     } else {
       localStorage.setItem(FLIGHT_COUNT_KEY, '0');
       localStorage.setItem(TRACKED_IDS_KEY, JSON.stringify([]));

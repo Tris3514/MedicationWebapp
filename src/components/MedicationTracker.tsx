@@ -12,7 +12,7 @@ import { useUserData } from "@/hooks/useUserData";
 const STORAGE_KEY = "medication-tracker-data";
 
 export function MedicationTracker() {
-  const { isAuthenticated, getData, setData } = useUserData();
+  const { isAuthenticated, getData, setData, setDataImmediate } = useUserData();
   const [medications, setMedications] = useState<Medication[]>([]);
 
   // Load data from localStorage on component mount
@@ -104,8 +104,8 @@ export function MedicationTracker() {
   };
 
   const toggleTaken = (id: string) => {
-    setMedications(prev =>
-      prev.map(med => {
+    setMedications(prev => {
+      const updated = prev.map(med => {
         if (med.id === id) {
           const newTakenStatus = !med.takenToday;
           const pillChange = newTakenStatus ? -med.pillsPerDose : med.pillsPerDose;
@@ -119,8 +119,15 @@ export function MedicationTracker() {
           };
         }
         return med;
-      })
-    );
+      });
+      
+      // Save immediately for critical medication tracking
+      if (isAuthenticated) {
+        setDataImmediate('medications', updated);
+      }
+      
+      return updated;
+    });
   };
 
   const deleteMedication = (id: string) => {

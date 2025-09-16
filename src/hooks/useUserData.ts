@@ -3,7 +3,7 @@
  */
 
 import { useAuth } from '@/contexts/AuthContext';
-import { getUserData, saveUserData, UserData } from '@/utils/userDataManager';
+import { getUserData, saveUserData, saveUserDataDebounced, saveUserDataImmediate, UserData } from '@/utils/userDataManager';
 import { useCallback } from 'react';
 
 export function useUserData() {
@@ -24,7 +24,7 @@ export function useUserData() {
 
     const currentData = getUserData(user.id);
     const updatedData = { ...currentData, ...data };
-    saveUserData(user.id, updatedData);
+    saveUserDataDebounced(user.id, updatedData);
   }, [isAuthenticated, user?.id]);
 
   const getData = useCallback(<K extends keyof UserData>(key: K): UserData[K] | null => {
@@ -44,7 +44,29 @@ export function useUserData() {
 
     const currentData = getUserData(user.id);
     const updatedData = { ...currentData, [key]: value };
-    saveUserData(user.id, updatedData);
+    saveUserDataDebounced(user.id, updatedData);
+  }, [isAuthenticated, user?.id]);
+
+  const saveDataImmediate = useCallback((data: Partial<UserData>) => {
+    if (!isAuthenticated || !user?.id) {
+      console.warn('Cannot save data: user not authenticated');
+      return;
+    }
+
+    const currentData = getUserData(user.id);
+    const updatedData = { ...currentData, ...data };
+    saveUserDataImmediate(user.id, updatedData);
+  }, [isAuthenticated, user?.id]);
+
+  const setDataImmediate = useCallback(<K extends keyof UserData>(key: K, value: UserData[K]) => {
+    if (!isAuthenticated || !user?.id) {
+      console.warn('Cannot set data: user not authenticated');
+      return;
+    }
+
+    const currentData = getUserData(user.id);
+    const updatedData = { ...currentData, [key]: value };
+    saveUserDataImmediate(user.id, updatedData);
   }, [isAuthenticated, user?.id]);
 
   return {
@@ -54,5 +76,7 @@ export function useUserData() {
     saveData,
     getData,
     setData,
+    saveDataImmediate,
+    setDataImmediate,
   };
 }
