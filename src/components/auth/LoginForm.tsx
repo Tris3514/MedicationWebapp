@@ -162,7 +162,7 @@ export function LoginForm({ onSwitchToSignUp }: LoginFormProps) {
           {/* Switch to Sign Up */}
           <div className="text-center">
             <p className="text-sm text-muted-foreground">
-              Don't have an account?{' '}
+              Don&apos;t have an account?{' '}
               <button
                 type="button"
                 onClick={onSwitchToSignUp}
