@@ -390,7 +390,7 @@ export function FlightRadar() {
     } finally {
       setLoading(false);
     }
-  }, [userLocation, fetchRealFlightData, lastApiCall]);
+  }, [userLocation, fetchRealFlightData, lastApiCall, totalFlightsTracked, trackedFlightIds]);
 
   // Load persisted flight count and tracked IDs on component mount
   useEffect(() => {
@@ -548,7 +548,7 @@ export function FlightRadar() {
               {userLocation.locationName && userLocation.locationName.includes("Default") && (
                 <div className="text-center p-2 bg-yellow-500/10 border border-yellow-500/20 rounded-md">
                   <div className="text-sm text-yellow-600 dark:text-yellow-400">
-                    ⚠️ Using default location. Click "Update Location" to use your actual position.
+                    ⚠️ Using default location. Click &quot;Update Location&quot; to use your actual position.
                   </div>
                 </div>
               )}

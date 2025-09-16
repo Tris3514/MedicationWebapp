@@ -1149,7 +1149,7 @@ export function MaltaBusinessScraper() {
               <div className="text-4xl mb-4">🏢</div>
               <p>No business data available</p>
               <p className="text-sm text-muted-foreground mt-2">
-                Click "Scrape Data" to discover Malta businesses
+                Click &quot;Scrape Data&quot; to discover Malta businesses
               </p>
             </div>
           )}

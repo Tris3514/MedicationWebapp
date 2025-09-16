@@ -182,7 +182,7 @@ export function MedicationTracker() {
         {medications.length > 0 && (
           <Button variant="outline" onClick={resetAllTakenStatus}>
             <RotateCcw className="mr-2 h-4 w-4" />
-            Reset All "Taken Today"
+            Reset All &quot;Taken Today&quot;
           </Button>
         )}
       </div>

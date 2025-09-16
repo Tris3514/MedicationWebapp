@@ -415,7 +415,7 @@ export function WeatherTracker({ isActive = false }: WeatherTrackerProps = {}) {
                     {showSuggestions && !isSearching && formData.name.length >= 2 && searchResults.length === 0 && (
                       <div className="absolute top-full left-0 right-0 mt-1 glass-card rounded-md border border-white p-3 z-50">
                         <div className="text-sm text-muted-foreground">
-                          No locations found for "{formData.name}"
+                          No locations found for &quot;{formData.name}&quot;
                         </div>
                       </div>
                     )}

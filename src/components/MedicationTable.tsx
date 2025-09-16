@@ -58,7 +58,7 @@ export function MedicationTable({
     return (
       <div className="text-center py-8 text-muted-foreground">
         <p>No medications added yet.</p>
-        <p className="text-sm mt-2">Click "Add Medication" to get started.</p>
+        <p className="text-sm mt-2">Click &quot;Add Medication&quot; to get started.</p>
       </div>
     );
   }
