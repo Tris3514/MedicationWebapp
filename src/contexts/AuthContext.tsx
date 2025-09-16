@@ -2,12 +2,15 @@
 
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { User, AuthState, LoginCredentials, SignUpCredentials, AuthResponse } from '@/types/auth';
+import { migrateToUserData, getUserData, saveUserData, clearUserData } from '@/utils/userDataManager';
 
 interface AuthContextType extends AuthState {
   login: (credentials: LoginCredentials) => Promise<AuthResponse>;
   signUp: (credentials: SignUpCredentials) => Promise<AuthResponse>;
   logout: () => void;
   clearError: () => void;
+  loadUserData: () => void;
+  saveCurrentUserData: () => void;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -91,6 +94,9 @@ export function AuthProvider({ children }: AuthProviderProps) {
           error: null,
         });
 
+        // Load user-specific data after successful login
+        migrateToUserData(updatedUser.id);
+
         return { success: true, user: updatedUser };
       } else {
         setAuthState(prev => ({
@@ -150,6 +156,9 @@ export function AuthProvider({ children }: AuthProviderProps) {
         error: null,
       });
 
+      // Initialize user-specific data for new user
+      migrateToUserData(newUser.id);
+
       return { success: true, user: newUser };
     } catch (error) {
       const errorMessage = 'Sign up failed. Please try again.';
@@ -176,12 +185,29 @@ export function AuthProvider({ children }: AuthProviderProps) {
     setAuthState(prev => ({ ...prev, error: null }));
   };
 
+  const loadUserData = () => {
+    if (authState.user?.id) {
+      // Migrate any existing data to user-specific storage
+      migrateToUserData(authState.user.id);
+    }
+  };
+
+  const saveCurrentUserData = () => {
+    if (authState.user?.id) {
+      // This will be called by components when they need to save data
+      // The actual data saving is handled by individual components
+      // This function exists for consistency and future use
+    }
+  };
+
   const value: AuthContextType = {
     ...authState,
     login,
     signUp,
     logout,
     clearError,
+    loadUserData,
+    saveCurrentUserData,
   };
 
   return (

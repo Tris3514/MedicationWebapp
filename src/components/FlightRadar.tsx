@@ -18,12 +18,14 @@ import {
   Clock
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { useUserData } from "@/hooks/useUserData";
 
 const STORAGE_KEY = "flight-radar-settings";
 const FLIGHT_COUNT_KEY = "flight-radar-total-count";
 const TRACKED_IDS_KEY = "flight-radar-tracked-ids";
 
 export function FlightRadar() {
+  const { isAuthenticated, getData, setData } = useUserData();
   const [userLocation, setUserLocation] = useState<UserLocation | null>(null);
   const [flights, setFlights] = useState<FlightData[]>([]);
   const [nearestFlight, setNearestFlight] = useState<FlightData | null>(null);
@@ -373,12 +375,19 @@ export function FlightRadar() {
       if (newFlights.length > 0) {
         const newTotal = totalFlightsTracked + newFlights.length;
         setTotalFlightsTracked(newTotal);
-        localStorage.setItem(FLIGHT_COUNT_KEY, newTotal.toString());
         
         // Update tracked flight IDs
         const updatedTrackedIds = new Set([...Array.from(trackedFlightIds), ...newFlights]);
         setTrackedFlightIds(updatedTrackedIds);
-        localStorage.setItem(TRACKED_IDS_KEY, JSON.stringify(Array.from(updatedTrackedIds)));
+        
+        // Save to user-specific data if authenticated, otherwise fallback to localStorage
+        if (isAuthenticated) {
+          setData('flightCount', newTotal);
+          setData('trackedFlightIds', Array.from(updatedTrackedIds));
+        } else {
+          localStorage.setItem(FLIGHT_COUNT_KEY, newTotal.toString());
+          localStorage.setItem(TRACKED_IDS_KEY, JSON.stringify(Array.from(updatedTrackedIds)));
+        }
       }
       
       // Find nearest airborne aircraft (not on ground)
@@ -397,21 +406,30 @@ export function FlightRadar() {
 
   // Load persisted flight count and tracked IDs on component mount
   useEffect(() => {
-    const savedCount = localStorage.getItem(FLIGHT_COUNT_KEY);
-    if (savedCount) {
-      setTotalFlightsTracked(parseInt(savedCount, 10));
-    }
-    
-    const savedIds = localStorage.getItem(TRACKED_IDS_KEY);
-    if (savedIds) {
-      try {
-        const idsArray = JSON.parse(savedIds);
-        setTrackedFlightIds(new Set(idsArray));
-      } catch (error) {
-        console.error('Failed to parse tracked flight IDs:', error);
+    if (isAuthenticated) {
+      // Load from user-specific data
+      const flightCount = getData('flightCount') || 0;
+      const trackedIds = getData('trackedFlightIds') || [];
+      setTotalFlightsTracked(flightCount);
+      setTrackedFlightIds(new Set(trackedIds));
+    } else {
+      // Fallback to localStorage for non-authenticated users
+      const savedCount = localStorage.getItem(FLIGHT_COUNT_KEY);
+      if (savedCount) {
+        setTotalFlightsTracked(parseInt(savedCount, 10));
+      }
+      
+      const savedIds = localStorage.getItem(TRACKED_IDS_KEY);
+      if (savedIds) {
+        try {
+          const idsArray = JSON.parse(savedIds);
+          setTrackedFlightIds(new Set(idsArray));
+        } catch (error) {
+          console.error('Failed to parse tracked flight IDs:', error);
+        }
       }
     }
-  }, []);
+  }, [isAuthenticated, getData]);
 
   // Initial location fetch
   useEffect(() => {
@@ -457,8 +475,15 @@ export function FlightRadar() {
   const resetFlightCount = () => {
     setTotalFlightsTracked(0);
     setTrackedFlightIds(new Set());
-    localStorage.setItem(FLIGHT_COUNT_KEY, '0');
-    localStorage.setItem(TRACKED_IDS_KEY, JSON.stringify([]));
+    
+    // Save to user-specific data if authenticated, otherwise fallback to localStorage
+    if (isAuthenticated) {
+      setData('flightCount', 0);
+      setData('trackedFlightIds', []);
+    } else {
+      localStorage.setItem(FLIGHT_COUNT_KEY, '0');
+      localStorage.setItem(TRACKED_IDS_KEY, JSON.stringify([]));
+    }
   };
 
   return (

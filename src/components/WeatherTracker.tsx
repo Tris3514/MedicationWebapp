@@ -17,6 +17,7 @@ import {
 } from "@/components/ui/dialog";
 import { Plus, MapPin, Thermometer, Droplets, Wind, Eye, Gauge, Sun, Trash2, Search, Cloud } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { useUserData } from "@/hooks/useUserData";
 
 const STORAGE_KEY = "weather-tracker-data";
 const WEATHER_API_KEY = "demo"; // Using demo data for now
@@ -26,6 +27,7 @@ interface WeatherTrackerProps {
 }
 
 export function WeatherTracker({ isActive = false }: WeatherTrackerProps = {}) {
+  const { isAuthenticated, getData, setData } = useUserData();
   const [locations, setLocations] = useState<WeatherLocation[]>([]);
   const [weatherData, setWeatherData] = useState<{ [key: string]: WeatherData }>({});
   const [activeLocationId, setActiveLocationId] = useState<string | null>(null);
@@ -38,26 +40,41 @@ export function WeatherTracker({ isActive = false }: WeatherTrackerProps = {}) {
 
   // Load data from localStorage
   useEffect(() => {
-    const savedData = localStorage.getItem(STORAGE_KEY);
-    if (savedData) {
-      try {
-        const parsed = JSON.parse(savedData);
-        setLocations(parsed.locations || []);
-        if (parsed.locations && parsed.locations.length > 0) {
-          setActiveLocationId(parsed.locations[0].id);
+    if (isAuthenticated) {
+      // Load from user-specific data
+      const weatherLocations = getData('weatherLocations') || [];
+      setLocations(weatherLocations);
+      if (weatherLocations.length > 0) {
+        setActiveLocationId(weatherLocations[0].id);
+      }
+    } else {
+      // Fallback to localStorage for non-authenticated users
+      const savedData = localStorage.getItem(STORAGE_KEY);
+      if (savedData) {
+        try {
+          const parsed = JSON.parse(savedData);
+          setLocations(parsed.locations || []);
+          if (parsed.locations && parsed.locations.length > 0) {
+            setActiveLocationId(parsed.locations[0].id);
+          }
+        } catch (error) {
+          console.error("Failed to load weather data from storage:", error);
         }
-      } catch (error) {
-        console.error("Failed to load weather data from storage:", error);
       }
     }
-  }, []);
+  }, [isAuthenticated, getData]);
 
   // Save data to localStorage
   useEffect(() => {
     if (locations.length > 0) {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify({ locations }));
+      // Save to user-specific data if authenticated, otherwise fallback to localStorage
+      if (isAuthenticated) {
+        setData('weatherLocations', locations);
+      } else {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify({ locations }));
+      }
     }
-  }, [locations]);
+  }, [locations, isAuthenticated, setData]);
 
   const fetchWeatherData = useCallback(async (location: WeatherLocation) => {
     setLoading(prev => ({ ...prev, [location.id]: true }));
