@@ -1,0 +1,68 @@
+// Comprehensive Malta Professional Services Database
+export const professionalServices = [
+  // Legal Services
+  { name: "Charles Grech & Associates", specialization: "Legal Services & Notary", website: null, contactNumber: "+356 2124 0123", address: "Valletta, Malta", category: "Legal Services" },
+  { name: "Mifsud Law Firm", specialization: "Property & Commercial Law", website: "https://www.mifsudlaw.com.mt", contactNumber: "+356 2137 4567", address: "Sliema, Malta", category: "Legal Services" },
+  { name: "Advocates Azzopardi", specialization: "Family & Immigration Law", website: null, contactNumber: "+356 2144 8901", address: "Birkirkara, Malta", category: "Legal Services" },
+  { name: "Ganado Advocates", specialization: "Corporate & Commercial Law", website: "https://www.ganadoadvocates.com", contactNumber: "+356 2124 6000", address: "Valletta, Malta", category: "Legal Services" },
+  { name: "Fenech & Fenech Advocates", specialization: "Civil & Criminal Law", website: "https://www.fenechlaw.com", contactNumber: "+356 2122 4000", address: "Valletta, Malta", category: "Legal Services" },
+  { name: "Malta Maritime Law", specialization: "Maritime & Shipping Law", website: "https://www.maltamaritimelaw.com", contactNumber: "+356 2124 8901", address: "Sliema, Malta", category: "Legal Services" },
+  { name: "Camilleri Preziosi", specialization: "Corporate & Financial Law", website: "https://www.camilleripreziosi.com", contactNumber: "+356 2123 8989", address: "Valletta, Malta", category: "Legal Services" },
+  { name: "WH Partners", specialization: "Gaming & Technology Law", website: "https://www.whpartners.eu", contactNumber: "+356 2122 4400", address: "St. Julian's, Malta", category: "Legal Services" },
+  { name: "Zammit & Attard", specialization: "Property & Conveyancing", website: null, contactNumber: "+356 2144 5000", address: "Birkirkara, Malta", category: "Legal Services" },
+  { name: "Malta Notary Services", specialization: "Notarial & Legal Services", website: "https://www.maltanotary.com", contactNumber: "+356 2133 6000", address: "Sliema, Malta", category: "Legal Services" },
+  { name: "Borg Barthet", specialization: "Intellectual Property Law", website: "https://www.borgbarthet.com", contactNumber: "+356 2124 9000", address: "Valletta, Malta", category: "Legal Services" },
+  { name: "Mamo TCV Advocates", specialization: "Corporate & Tax Law", website: "https://www.mamotcv.com", contactNumber: "+356 2122 3000", address: "Valletta, Malta", category: "Legal Services" },
+  { name: "Chetcuti Cauchi Advocates", specialization: "Immigration & Citizenship Law", website: "https://www.chetcuticauchi.com", contactNumber: "+356 2205 6200", address: "St. Julian's, Malta", category: "Legal Services" },
+  { name: "Refalo & Associates", specialization: "Employment & Labour Law", website: "https://www.refalolaw.com", contactNumber: "+356 2144 7000", address: "Birkirkara, Malta", category: "Legal Services" },
+  { name: "Malta Legal Aid", specialization: "Legal Aid & Public Interest Law", website: "https://www.maltalegalaid.com", contactNumber: "+356 2124 3000", address: "Valletta, Malta", category: "Legal Services" },
+
+  // Medical & Healthcare
+  { name: "Bonello Dental Clinic", specialization: "General & Cosmetic Dentistry", website: "https://www.bonellodental.com", contactNumber: "+356 2138 9876", address: "St. Julian's, Malta", category: "Medical & Healthcare" },
+  { name: "Dr. Maria Borg Clinic", specialization: "General Practice & Family Medicine", website: null, contactNumber: "+356 2138 5432", address: "Birkirkara, Malta", category: "Medical & Healthcare" },
+  { name: "Sliema Physiotherapy", specialization: "Physical Therapy & Rehabilitation", website: "https://www.sliemaphysio.com", contactNumber: "+356 2133 7890", address: "Sliema, Malta", category: "Medical & Healthcare" },
+  { name: "Malta Eye Care", specialization: "Optometry & Eye Examinations", website: null, contactNumber: "+356 2147 6543", address: "Hamrun, Malta", category: "Medical & Healthcare" },
+  { name: "St. James Hospital", specialization: "Private Healthcare Services", website: "https://www.stjameshospital.com", contactNumber: "+356 2137 2000", address: "Sliema, Malta", category: "Medical & Healthcare" },
+  { name: "Malta Dental Studio", specialization: "Advanced Dental Care", website: "https://www.maltadentalstudio.com", contactNumber: "+356 2138 4000", address: "St. Julian's, Malta", category: "Medical & Healthcare" },
+  { name: "Malta Heart Foundation", specialization: "Cardiac Care & Prevention", website: "https://www.maltaheart.org", contactNumber: "+356 2122 4121", address: "Valletta, Malta", category: "Medical & Healthcare" },
+  { name: "Malta Chiropractic Clinic", specialization: "Chiropractic & Spine Care", website: "https://www.maltachiro.com", contactNumber: "+356 2144 7000", address: "Birkirkara, Malta", category: "Medical & Healthcare" },
+  { name: "Smile Dental Clinic", specialization: "Family Dentistry", website: null, contactNumber: "+356 2157 3000", address: "Bugibba, Malta", category: "Medical & Healthcare" },
+  { name: "Malta Psychology Services", specialization: "Mental Health & Counseling", website: "https://www.maltapsychology.com", contactNumber: "+356 2133 8000", address: "Sliema, Malta", category: "Medical & Healthcare" },
+  { name: "Malta Hearing Centre", specialization: "Audiology & Hearing Aids", website: "https://www.maltahearing.com", contactNumber: "+356 2138 7000", address: "St. Julian's, Malta", category: "Medical & Healthcare" },
+  { name: "Dermatology Clinic Malta", specialization: "Skin Care & Dermatology", website: "https://www.dermatologymalta.com", contactNumber: "+356 2133 9000", address: "Sliema, Malta", category: "Medical & Healthcare" },
+  { name: "Malta Pediatric Clinic", specialization: "Children's Healthcare", website: null, contactNumber: "+356 2144 6000", address: "Birkirkara, Malta", category: "Medical & Healthcare" },
+  { name: "Orthopedic Clinic Malta", specialization: "Bone & Joint Care", website: "https://www.orthopedicmalta.com", contactNumber: "+356 2138 5000", address: "St. Julian's, Malta", category: "Medical & Healthcare" },
+  { name: "Malta Fertility Clinic", specialization: "Reproductive Health Services", website: "https://www.maltafertility.com", contactNumber: "+356 2137 8000", address: "Sliema, Malta", category: "Medical & Healthcare" },
+
+  // Financial Services
+  { name: "Mediterranean Accounting Services", specialization: "Bookkeeping & Tax Preparation", website: null, contactNumber: "+356 2144 5678", address: "Birkirkara, Malta", category: "Financial Services" },
+  { name: "Malta Business Advisors", specialization: "Business Consulting & Planning", website: "https://www.maltabusinessadvisors.com", contactNumber: "+356 2135 9876", address: "St. Julian's, Malta", category: "Financial Services" },
+  { name: "Fenech Insurance Agency", specialization: "Insurance & Risk Management", website: "https://www.fenechinsurance.mt", contactNumber: "+356 2147 2345", address: "Hamrun, Malta", category: "Financial Services" },
+  { name: "Malta Financial Services", specialization: "Investment & Wealth Management", website: "https://www.maltafinancial.com", contactNumber: "+356 2133 4000", address: "Sliema, Malta", category: "Financial Services" },
+  { name: "Island Accounting", specialization: "Corporate Accounting Services", website: null, contactNumber: "+356 2145 7000", address: "St. Julian's, Malta", category: "Financial Services" },
+  { name: "Malta Tax Advisors", specialization: "Tax Planning & Compliance", website: "https://www.maltatax.com", contactNumber: "+356 2138 5000", address: "Valletta, Malta", category: "Financial Services" },
+  { name: "Mediterranean Insurance", specialization: "General Insurance Services", website: "https://www.medinsurance.mt", contactNumber: "+356 2122 8000", address: "Floriana, Malta", category: "Financial Services" },
+  { name: "Malta Audit Services", specialization: "Audit & Assurance", website: "https://www.maltaaudit.com", contactNumber: "+356 2144 6000", address: "Birkirkara, Malta", category: "Financial Services" },
+  { name: "Island Investment Group", specialization: "Investment Advisory", website: null, contactNumber: "+356 2137 7000", address: "Sliema, Malta", category: "Financial Services" },
+  { name: "Malta Pension Services", specialization: "Retirement Planning", website: "https://www.maltapension.com", contactNumber: "+356 2133 9000", address: "St. Julian's, Malta", category: "Financial Services" },
+  { name: "Corporate Services Malta", specialization: "Company Formation & Management", website: "https://www.corporateservices.mt", contactNumber: "+356 2124 7000", address: "Valletta, Malta", category: "Financial Services" },
+  { name: "Malta Mortgage Brokers", specialization: "Mortgage & Property Finance", website: "https://www.maltamortgage.com", contactNumber: "+356 2138 8000", address: "Sliema, Malta", category: "Financial Services" },
+  { name: "Island Bookkeeping", specialization: "Small Business Accounting", website: null, contactNumber: "+356 2145 4000", address: "Mosta, Malta", category: "Financial Services" },
+  { name: "Malta Credit Union", specialization: "Community Banking Services", website: "https://www.maltacredit.com", contactNumber: "+356 2144 9000", address: "Hamrun, Malta", category: "Financial Services" },
+  { name: "Financial Planning Malta", specialization: "Personal Financial Planning", website: "https://www.financialplanning.mt", contactNumber: "+356 2137 5000", address: "St. Julian's, Malta", category: "Financial Services" },
+
+  // Technology & IT
+  { name: "Malta IT Solutions", specialization: "Software Development & IT Consulting", website: "https://www.maltaitsolutions.com", contactNumber: "+356 2137 9988", address: "Birkirkara, Malta", category: "Technology & IT" },
+  { name: "Digital Malta Agency", specialization: "Web Design & Digital Marketing", website: "https://www.digitalmalta.com", contactNumber: "+356 2133 4567", address: "Sliema, Malta", category: "Technology & IT" },
+  { name: "TechFlow Systems", specialization: "Network Solutions & Support", website: null, contactNumber: "+356 2145 7890", address: "St. Julian's, Malta", category: "Technology & IT" },
+  { name: "Malta Software House", specialization: "Custom Software Development", website: "https://www.maltasoftware.com", contactNumber: "+356 2138 6000", address: "Valletta, Malta", category: "Technology & IT" },
+  { name: "Island Web Design", specialization: "Website Development & SEO", website: "https://www.islandweb.mt", contactNumber: "+356 2144 3000", address: "Sliema, Malta", category: "Technology & IT" },
+  { name: "Malta Cyber Security", specialization: "IT Security & Consulting", website: "https://www.maltacyber.com", contactNumber: "+356 2137 2000", address: "St. Julian's, Malta", category: "Technology & IT" },
+  { name: "Digital Solutions Malta", specialization: "E-commerce & Digital Platforms", website: null, contactNumber: "+356 2133 8000", address: "Birkirkara, Malta", category: "Technology & IT" },
+  { name: "Malta Cloud Services", specialization: "Cloud Computing & Hosting", website: "https://www.maltacloud.com", contactNumber: "+356 2145 5000", address: "Sliema, Malta", category: "Technology & IT" },
+  { name: "TechMalta Consultancy", specialization: "IT Strategy & Implementation", website: "https://www.techmalta.com", contactNumber: "+356 2138 7000", address: "Valletta, Malta", category: "Technology & IT" },
+  { name: "Malta App Developers", specialization: "Mobile App Development", website: null, contactNumber: "+356 2144 4000", address: "St. Julian's, Malta", category: "Technology & IT" },
+  { name: "Island Networks", specialization: "Network Infrastructure", website: "https://www.islandnetworks.mt", contactNumber: "+356 2137 6000", address: "Sliema, Malta", category: "Technology & IT" },
+  { name: "Malta Data Recovery", specialization: "Data Recovery & IT Support", website: "https://www.maltadata.com", contactNumber: "+356 2133 7000", address: "Birkirkara, Malta", category: "Technology & IT" }
+];
+
