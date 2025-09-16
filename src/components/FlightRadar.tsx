@@ -67,18 +67,17 @@ export function FlightRadar() {
       
       console.log('Fetching flights for area:', { lamin, lamax, lomin, lomax });
       
-      // OpenSky Network API - free, no API key required
-      const response = await fetch(
-        `https://opensky-network.org/api/states/all?lamin=${lamin}&lamax=${lamax}&lomin=${lomin}&lomax=${lomax}`,
-        {
-          headers: {
-            'User-Agent': 'MedicationWebapp/1.0',
-            'Accept': 'application/json',
-          },
-          mode: 'cors',
-          cache: 'no-cache'
-        }
-      );
+      // OpenSky Network API - using CORS proxy to avoid browser restrictions
+      const apiUrl = `https://opensky-network.org/api/states/all?lamin=${lamin}&lamax=${lamax}&lomin=${lomin}&lomax=${lomax}`;
+      const proxyUrl = `https://api.allorigins.win/get?url=${encodeURIComponent(apiUrl)}`;
+      
+      const response = await fetch(proxyUrl, {
+        headers: {
+          'Accept': 'application/json',
+        },
+        mode: 'cors',
+        cache: 'no-cache'
+      });
       
       console.log('API Response status:', response.status, response.statusText);
       
@@ -88,7 +87,11 @@ export function FlightRadar() {
         throw new Error(`OpenSky API request failed: ${response.status} ${response.statusText}`);
       }
       
-      const data = await response.json();
+      const proxyData = await response.json();
+      console.log('Proxy Response data:', proxyData);
+      
+      // Parse the actual API response from the proxy
+      const data = JSON.parse(proxyData.contents);
       console.log('API Response data:', data);
       
       if (!data.states || data.states.length === 0) {
