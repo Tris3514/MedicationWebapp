@@ -12,7 +12,7 @@ export function ThemeToggle() {
       variant="outline"
       size="sm"
       onClick={toggleTheme}
-      className="fixed top-4 right-4 z-50 h-9 w-9 p-0"
+      className="h-8 w-8 p-0"
       title={`Switch to ${theme === "dark" ? "light" : "dark"} mode`}
     >
       {theme === "light" ? (

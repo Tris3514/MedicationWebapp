@@ -65,7 +65,7 @@ export default function Home() {
               variant="outline"
               size="sm"
               onClick={() => setShowUserProfile(!showUserProfile)}
-              className="flex items-center gap-2"
+              className="h-8 flex items-center gap-2"
             >
               <User className="h-4 w-4" />
               {user?.name}
@@ -75,7 +75,7 @@ export default function Home() {
               variant="outline"
               size="sm"
               onClick={() => setShowAuthModal(true)}
-              className="flex items-center gap-2"
+              className="h-8 flex items-center gap-2"
             >
               <LogIn className="h-4 w-4" />
               Sign In
