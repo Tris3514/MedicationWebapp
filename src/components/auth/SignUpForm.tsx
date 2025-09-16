@@ -12,9 +12,10 @@ import { cn } from '@/lib/utils';
 
 interface SignUpFormProps {
   onSwitchToLogin: () => void;
+  onSuccess?: () => void;
 }
 
-export function SignUpForm({ onSwitchToLogin }: SignUpFormProps) {
+export function SignUpForm({ onSwitchToLogin, onSuccess }: SignUpFormProps) {
   const { signUp, isLoading, error, clearError } = useAuth();
   const [credentials, setCredentials] = useState<SignUpCredentials>({
     name: '',
@@ -68,6 +69,7 @@ export function SignUpForm({ onSwitchToLogin }: SignUpFormProps) {
     const result = await signUp(credentials);
     if (result.success) {
       // Sign up successful, the context will handle the state update
+      onSuccess?.();
     }
   };
 

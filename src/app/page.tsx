@@ -108,6 +108,7 @@ export default function Home() {
         <AuthModal
           isOpen={showAuthModal}
           onClose={() => setShowAuthModal(false)}
+          onSuccess={() => setShowAuthModal(false)}
         />
       </div>
     </div>

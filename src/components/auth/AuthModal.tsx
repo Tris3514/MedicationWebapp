@@ -10,10 +10,11 @@ import { Button } from '@/components/ui/button';
 interface AuthModalProps {
   isOpen: boolean;
   onClose: () => void;
+  onSuccess?: () => void;
   defaultMode?: 'login' | 'signup';
 }
 
-export function AuthModal({ isOpen, onClose, defaultMode = 'login' }: AuthModalProps) {
+export function AuthModal({ isOpen, onClose, onSuccess, defaultMode = 'login' }: AuthModalProps) {
   const [mode, setMode] = useState<'login' | 'signup'>(defaultMode);
 
   const handleClose = () => {
@@ -40,9 +41,15 @@ export function AuthModal({ isOpen, onClose, defaultMode = 'login' }: AuthModalP
 
           {/* Auth Form */}
           {mode === 'login' ? (
-            <LoginForm onSwitchToSignUp={() => setMode('signup')} />
+            <LoginForm 
+              onSwitchToSignUp={() => setMode('signup')} 
+              onSuccess={onSuccess}
+            />
           ) : (
-            <SignUpForm onSwitchToLogin={() => setMode('login')} />
+            <SignUpForm 
+              onSwitchToLogin={() => setMode('login')} 
+              onSuccess={onSuccess}
+            />
           )}
         </div>
       </DialogContent>

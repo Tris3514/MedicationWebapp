@@ -27,7 +27,7 @@ export function Clock() {
   }, []);
 
   return (
-    <div className="fixed top-4 right-16 z-50 px-3 py-2 text-sm font-mono bg-white/10 backdrop-blur-sm border border-black dark:border-white rounded-md text-primary-enhanced">
+    <div className="px-3 py-2 text-sm font-mono bg-white/10 backdrop-blur-sm border border-black dark:border-white rounded-md text-primary-enhanced">
       {time}
     </div>
   );
