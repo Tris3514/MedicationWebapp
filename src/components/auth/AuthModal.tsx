@@ -2,7 +2,6 @@
 
 import { useState } from 'react';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { VisuallyHidden } from '@radix-ui/react-visually-hidden';
 import { LoginForm } from './LoginForm';
 import { SignUpForm } from './SignUpForm';
 import { X } from 'lucide-react';
@@ -25,11 +24,9 @@ export function AuthModal({ isOpen, onClose, defaultMode = 'login' }: AuthModalP
   return (
     <Dialog open={isOpen} onOpenChange={handleClose}>
       <DialogContent className="sm:max-w-md p-0 border-0 bg-transparent shadow-none">
-        <VisuallyHidden>
-          <DialogTitle>
-            {mode === 'login' ? 'Sign In' : 'Create Account'}
-          </DialogTitle>
-        </VisuallyHidden>
+        <DialogTitle className="sr-only">
+          {mode === 'login' ? 'Sign In' : 'Create Account'}
+        </DialogTitle>
         <div className="relative">
           {/* Close Button */}
           <Button
