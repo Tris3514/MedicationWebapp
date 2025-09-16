@@ -1,8 +1,5 @@
-"use client";
-
-import { useParams } from 'next/navigation';
 import { AuthModal } from '@/components/auth/AuthModal';
-import { useState } from 'react';
+import { ResetPasswordClient } from './ResetPasswordClient';
 
 // Generate static params for static export
 export async function generateStaticParams() {
@@ -10,10 +7,14 @@ export async function generateStaticParams() {
   return [];
 }
 
-export default function ResetPasswordPage() {
-  const params = useParams();
-  const token = params.token as string;
-  const [isOpen, setIsOpen] = useState(true);
+interface ResetPasswordPageProps {
+  params: {
+    token: string;
+  };
+}
+
+export default function ResetPasswordPage({ params }: ResetPasswordPageProps) {
+  const { token } = params;
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-background">
@@ -22,17 +23,7 @@ export default function ResetPasswordPage() {
         <p className="text-muted-foreground mb-4">
           Use the form below to reset your password.
         </p>
-        <AuthModal
-          isOpen={isOpen}
-          onClose={() => setIsOpen(false)}
-          defaultMode="reset-password"
-          resetToken={token}
-          onSuccess={() => {
-            setIsOpen(false);
-            // Redirect to login or home page
-            window.location.href = '/';
-          }}
-        />
+        <ResetPasswordClient token={token} />
       </div>
     </div>
   );
