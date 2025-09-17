@@ -176,7 +176,6 @@ export function FlightRadar() {
             'JAL': { name: 'Japan Airlines', company: 'Japan Airlines Co., Ltd.' },
             'ANA': { name: 'All Nippon Airways', company: 'ANA Holdings Inc.' },
             'ACA': { name: 'Air Canada', company: 'Air Canada' },
-            'AFR': { name: 'Air France', company: 'Air France-KLM' },
             'IBE': { name: 'Iberia', company: 'International Airlines Group' },
             'AZA': { name: 'Alitalia', company: 'ITA Airways' }
           };
