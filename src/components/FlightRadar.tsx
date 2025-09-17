@@ -97,27 +97,27 @@ export function FlightRadar() {
         console.log('Direct API failed, trying proxy:', directError);
         
         // Fallback to CORS proxy
-        const apiUrl = `https://opensky-network.org/api/states/all?lamin=${lamin}&lamax=${lamax}&lomin=${lomin}&lomax=${lomax}`;
-        const proxyUrl = `https://api.allorigins.win/get?url=${encodeURIComponent(apiUrl)}`;
-        
+      const apiUrl = `https://opensky-network.org/api/states/all?lamin=${lamin}&lamax=${lamax}&lomin=${lomin}&lomax=${lomax}`;
+      const proxyUrl = `https://api.allorigins.win/get?url=${encodeURIComponent(apiUrl)}`;
+      
         response = await fetch(proxyUrl, {
-          headers: {
-            'Accept': 'application/json',
-          },
-          mode: 'cors',
-          cache: 'no-cache'
-        });
-        
+        headers: {
+          'Accept': 'application/json',
+        },
+        mode: 'cors',
+        cache: 'no-cache'
+      });
+      
         console.log('Proxy Response status:', response.status, response.statusText);
-        
-        if (!response.ok) {
-          const errorText = await response.text();
+      
+      if (!response.ok) {
+        const errorText = await response.text();
           console.error('Proxy Error Response:', errorText);
-          throw new Error(`OpenSky API request failed: ${response.status} ${response.statusText}`);
-        }
-        
-        const proxyData = await response.json();
-        console.log('Proxy Response data:', proxyData);
+        throw new Error(`OpenSky API request failed: ${response.status} ${response.statusText}`);
+      }
+      
+      const proxyData = await response.json();
+      console.log('Proxy Response data:', proxyData);
         
         // Check if the response contains an error message
         if (typeof proxyData.contents === 'string' && proxyData.contents.includes('Too many requests')) {
@@ -125,8 +125,8 @@ export function FlightRadar() {
           setApiStatus('rate_limited');
           return [];
         }
-        
-        // Parse the actual API response from the proxy
+      
+      // Parse the actual API response from the proxy
         try {
           data = JSON.parse(proxyData.contents);
         } catch (parseError) {
@@ -149,85 +149,25 @@ export function FlightRadar() {
           true_track, vertical_rate, sensors, geo_altitude, squawk, spi, position_source
         ] = state;
         
-        // Extract airline information from callsign
+        // Use only real data from the API
         const cleanCallsign = (callsign || icao24).trim();
-        const airlineCode = cleanCallsign.match(/^[A-Z]{2,3}/)?.[0] || cleanCallsign.substring(0, 3);
         
-        // Enhanced airline mapping from IATA/ICAO codes
-        const getAirlineInfo = (code: string, country: string): { name: string, company: string } => {
-          const airlineDatabase: { [key: string]: { name: string, company: string } } = {
-            // Major international airlines
-            'AAL': { name: 'American Airlines', company: 'American Airlines Group' },
-            'UAL': { name: 'United Airlines', company: 'United Airlines Holdings' },
-            'DAL': { name: 'Delta Air Lines', company: 'Delta Air Lines Inc.' },
-            'SWA': { name: 'Southwest Airlines', company: 'Southwest Airlines Co.' },
-            'BAW': { name: 'British Airways', company: 'International Airlines Group' },
-            'VIR': { name: 'Virgin Atlantic', company: 'Virgin Group' },
-            'DLH': { name: 'Lufthansa', company: 'Deutsche Lufthansa AG' },
-            'AFR': { name: 'Air France', company: 'Air France-KLM' },
-            'KLM': { name: 'KLM', company: 'Air France-KLM' },
-            'EZY': { name: 'EasyJet', company: 'EasyJet plc' },
-            'RYR': { name: 'Ryanair', company: 'Ryanair Holdings' },
-            'EK': { name: 'Emirates', company: 'Emirates Group' },
-            'QTR': { name: 'Qatar Airways', company: 'Qatar Airways Group' },
-            'SIA': { name: 'Singapore Airlines', company: 'Singapore Airlines Limited' },
-            'JAL': { name: 'Japan Airlines', company: 'Japan Airlines Co., Ltd.' },
-            'ANA': { name: 'All Nippon Airways', company: 'ANA Holdings Inc.' },
-            // Add more based on common patterns
-          };
-          
-          // Try exact match first
-          if (airlineDatabase[code]) {
-            return airlineDatabase[code];
-          }
-          
-          // Try partial matches for common patterns
-          if (code.startsWith('AA')) return { name: 'American Airlines', company: 'American Airlines Group' };
-          if (code.startsWith('UA')) return { name: 'United Airlines', company: 'United Airlines Holdings' };
-          if (code.startsWith('DL')) return { name: 'Delta Air Lines', company: 'Delta Air Lines Inc.' };
-          if (code.startsWith('BA')) return { name: 'British Airways', company: 'International Airlines Group' };
-          if (code.startsWith('LH')) return { name: 'Lufthansa', company: 'Deutsche Lufthansa AG' };
-          if (code.startsWith('AF')) return { name: 'Air France', company: 'Air France-KLM' };
-          if (code.startsWith('KL')) return { name: 'KLM', company: 'Air France-KLM' };
-          
-          // Country-based fallback
-          const countryAirlines: { [key: string]: { name: string, company: string } } = {
-            'United States': { name: 'US Airline', company: 'US Aviation Company' },
-            'United Kingdom': { name: 'UK Airline', company: 'UK Aviation Company' },
-            'Germany': { name: 'German Airline', company: 'German Aviation Company' },
-            'France': { name: 'French Airline', company: 'French Aviation Company' },
-            'Netherlands': { name: 'Dutch Airline', company: 'Dutch Aviation Company' },
-            'Canada': { name: 'Canadian Airline', company: 'Canadian Aviation Company' },
-          };
-          
-          return countryAirlines[country] || { name: `${country} Airline`, company: `${country} Aviation` };
+        // Only use real airline information if available, otherwise show as unknown
+        const airlineInfo = {
+          name: cleanCallsign ? `${cleanCallsign} Flight` : 'Unknown Airline',
+          company: origin_country ? `${origin_country} Aviation` : 'Unknown Company'
         };
         
-        // Get aircraft type from registration prefix
-        const getAircraftType = (registration: string, country: string): string => {
-          // Common aircraft types based on registration patterns and typical fleet compositions
-          const aircraftTypes = [
-            'Boeing 737', 'Airbus A320', 'Boeing 777', 'Airbus A350', 
-            'Boeing 787', 'Airbus A330', 'Boeing 747', 'Airbus A380',
-            'Embraer E190', 'Bombardier CRJ', 'ATR 72', 'Dash 8'
-          ];
-          
-          // For US registrations (N-prefix), more likely to be Boeing
-          if (registration.startsWith('N')) {
-            const boeingTypes = ['Boeing 737', 'Boeing 777', 'Boeing 787', 'Boeing 747'];
-            return boeingTypes[Math.floor(Math.random() * boeingTypes.length)];
-          }
-          
-          // For European registrations, mix of Airbus and Boeing
-          if (registration.match(/^[A-Z]-/)) {
-            return aircraftTypes[Math.floor(Math.random() * aircraftTypes.length)];
-          }
-          
-          return aircraftTypes[Math.floor(Math.random() * aircraftTypes.length)];
-        };
+        // Use real aircraft registration from ICAO24 code
+        const aircraftType = 'Aircraft'; // Generic since we don't have real aircraft type data
         
-        const airlineInfo = getAirlineInfo(airlineCode, origin_country || 'Unknown');
-        const aircraftType = getAircraftType(icao24.toUpperCase(), origin_country || 'Unknown');
+        // Create a simple hash from flight ID to get deterministic but varied results
+        let hash = 0;
+        for (let i = 0; i < icao24.length; i++) {
+          const char = icao24.charCodeAt(i);
+          hash = ((hash << 5) - hash) + char;
+          hash = hash & hash; // Convert to 32-bit integer
+        }
         
         // Comprehensive airport database with full names
         const getAirportInfo = (iataCode: string): { name: string, city: string, country: string } => {
@@ -321,41 +261,23 @@ export function FlightRadar() {
           };
         };
 
-        // Generate realistic route information based on location and airline
-        const generateRoute = (country: string, airlineName: string): { origin: string, destination: string, originInfo: any, destinationInfo: any } => {
-          const majorAirports: { [key: string]: string[] } = {
-            'United States': ['JFK', 'LAX', 'ORD', 'DFW', 'DEN', 'SFO', 'SEA', 'LAS', 'PHX', 'IAH', 'MIA', 'ATL', 'BOS', 'MCO'],
-            'United Kingdom': ['LHR', 'LGW', 'MAN', 'EDI', 'BHX', 'STN', 'LTN'],
-            'Germany': ['FRA', 'MUC', 'DUS', 'TXL', 'HAM', 'STR'],
-            'France': ['CDG', 'ORY', 'NCE', 'LYS', 'TLS', 'BOD'],
-            'Netherlands': ['AMS', 'RTM', 'EIN'],
-            'Canada': ['YYZ', 'YVR', 'YUL', 'YYC', 'YOW'],
-            'Spain': ['MAD', 'BCN', 'PMI', 'LPA'],
-            'Italy': ['FCO', 'MXP', 'VCE', 'NAP'],
-          };
-          
-          const airports = majorAirports[country] || ['JFK', 'LAX', 'LHR'];
-          const allAirports = Object.values(majorAirports).flat();
-          
-          const originCode = airports[Math.floor(Math.random() * airports.length)];
-          const destinationCode = allAirports[Math.floor(Math.random() * allAirports.length)];
-          
-          const originInfo = getAirportInfo(originCode);
-          const destinationInfo = getAirportInfo(destinationCode);
-          
-          return { 
-            origin: originCode, 
-            destination: destinationCode,
-            originInfo,
-            destinationInfo
+        // Use real flight data only - no fake route generation
+        const getRealFlightRoute = (): { origin: string, destination: string, originInfo: any, destinationInfo: any } => {
+          // Since OpenSky API doesn't provide route information, we'll show the flight's current position
+          // and indicate that route information is not available from this data source
+          return {
+            origin: 'Unknown',
+            destination: 'Unknown',
+            originInfo: { name: 'Route data not available', city: 'Unknown', country: 'Unknown' },
+            destinationInfo: { name: 'Route data not available', city: 'Unknown', country: 'Unknown' }
           };
         };
         
-        const route = generateRoute(origin_country || 'Unknown', airlineInfo.name);
+        const route = getRealFlightRoute();
         
         const flight: FlightData = {
           id: icao24,
-          callsign: cleanCallsign || `${airlineCode}${Math.floor(Math.random() * 9000) + 1000}`,
+          callsign: cleanCallsign || icao24,
           airline: airlineInfo.name,
           aircraft: aircraftType,
           registration: icao24.toUpperCase(),
@@ -392,14 +314,14 @@ export function FlightRadar() {
       const demoFlight: FlightData = {
         id: 'demo-flight-001',
         callsign: 'DEMO123',
-        airline: 'Demo Airlines',
-        aircraft: 'Boeing 737',
-        registration: 'N12345',
+        airline: 'Demo Flight',
+        aircraft: 'Aircraft',
+        registration: 'DEMO001',
         registrationCompany: 'Demo Aviation',
-        origin: 'JFK',
-        destination: 'LAX',
-        originInfo: { name: 'John F. Kennedy International Airport', city: 'New York', country: 'United States' },
-        destinationInfo: { name: 'Los Angeles International Airport', city: 'Los Angeles', country: 'United States' },
+        origin: 'Unknown',
+        destination: 'Unknown',
+        originInfo: { name: 'Route data not available', city: 'Unknown', country: 'Unknown' },
+        destinationInfo: { name: 'Route data not available', city: 'Unknown', country: 'Unknown' },
         lat: userLat + 0.01, // Slightly offset from user location
         lon: userLon + 0.01,
         altitude: 35000,
@@ -552,8 +474,8 @@ export function FlightRadar() {
         setTrackedFlightIds(updatedTrackedIds);
         
         // Save to localStorage
-        localStorage.setItem(FLIGHT_COUNT_KEY, newTotal.toString());
-        localStorage.setItem(TRACKED_IDS_KEY, JSON.stringify(Array.from(updatedTrackedIds)));
+          localStorage.setItem(FLIGHT_COUNT_KEY, newTotal.toString());
+          localStorage.setItem(TRACKED_IDS_KEY, JSON.stringify(Array.from(updatedTrackedIds)));
       }
       
       // Find nearest airborne aircraft (not on ground)
@@ -572,20 +494,20 @@ export function FlightRadar() {
 
   // Load persisted flight count and tracked IDs when user data is available
   useEffect(() => {
-    const savedCount = localStorage.getItem(FLIGHT_COUNT_KEY);
-    if (savedCount) {
-      setTotalFlightsTracked(parseInt(savedCount, 10));
-    }
-    
-    const savedIds = localStorage.getItem(TRACKED_IDS_KEY);
-    if (savedIds) {
-      try {
-        const idsArray = JSON.parse(savedIds);
-        setTrackedFlightIds(new Set(idsArray));
-      } catch (error) {
-        console.error('Failed to parse tracked flight IDs:', error);
+      const savedCount = localStorage.getItem(FLIGHT_COUNT_KEY);
+      if (savedCount) {
+        setTotalFlightsTracked(parseInt(savedCount, 10));
       }
-    }
+      
+      const savedIds = localStorage.getItem(TRACKED_IDS_KEY);
+      if (savedIds) {
+        try {
+          const idsArray = JSON.parse(savedIds);
+          setTrackedFlightIds(new Set(idsArray));
+        } catch (error) {
+          console.error('Failed to parse tracked flight IDs:', error);
+        }
+      }
   }, []);
 
   // Initial location fetch
@@ -634,8 +556,8 @@ export function FlightRadar() {
     setTrackedFlightIds(new Set());
     
     // Save to localStorage
-    localStorage.setItem(FLIGHT_COUNT_KEY, '0');
-    localStorage.setItem(TRACKED_IDS_KEY, JSON.stringify([]));
+      localStorage.setItem(FLIGHT_COUNT_KEY, '0');
+      localStorage.setItem(TRACKED_IDS_KEY, JSON.stringify([]));
   };
 
   return (
@@ -784,9 +706,14 @@ export function FlightRadar() {
                 <div className="text-center flex-1">
                   <div className="text-sm text-muted-foreground">From</div>
                   <div className="font-semibold">{nearestFlight.origin}</div>
-                  {nearestFlight.originInfo && (
+                  {nearestFlight.originInfo && nearestFlight.origin !== 'Unknown' && (
                     <div className="text-xs text-muted-foreground">
                       {nearestFlight.originInfo.name}
+                    </div>
+                  )}
+                  {nearestFlight.origin === 'Unknown' && (
+                    <div className="text-xs text-muted-foreground">
+                      Route data not available
                     </div>
                   )}
                 </div>
@@ -800,9 +727,14 @@ export function FlightRadar() {
                 <div className="text-center flex-1">
                   <div className="text-sm text-muted-foreground">To</div>
                   <div className="font-semibold">{nearestFlight.destination}</div>
-                  {nearestFlight.destinationInfo && (
+                  {nearestFlight.destinationInfo && nearestFlight.destination !== 'Unknown' && (
                     <div className="text-xs text-muted-foreground">
                       {nearestFlight.destinationInfo.name}
+                    </div>
+                  )}
+                  {nearestFlight.destination === 'Unknown' && (
+                    <div className="text-xs text-muted-foreground">
+                      Route data not available
                     </div>
                   )}
                 </div>
@@ -918,10 +850,16 @@ export function FlightRadar() {
                     />
                     <div>
                       <div className="font-semibold">{flight.callsign}</div>
-                      <div className="text-xs text-muted-foreground">
-                        {flight.origin} → {flight.destination}
-                      </div>
-                      {(flight.originInfo || flight.destinationInfo) && (
+                      {flight.origin !== 'Unknown' && flight.destination !== 'Unknown' ? (
+                        <div className="text-xs text-muted-foreground">
+                          {flight.origin} → {flight.destination}
+                        </div>
+                      ) : (
+                        <div className="text-xs text-muted-foreground">
+                          Route data not available
+                        </div>
+                      )}
+                      {flight.origin !== 'Unknown' && flight.destination !== 'Unknown' && (flight.originInfo || flight.destinationInfo) && (
                         <div className="text-xs text-muted-foreground mt-1">
                           {flight.originInfo?.city || flight.origin} → {flight.destinationInfo?.city || flight.destination}
                         </div>
