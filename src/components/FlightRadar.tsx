@@ -33,6 +33,7 @@ export function FlightRadar() {
   const [totalFlightsTracked, setTotalFlightsTracked] = useState<number>(0);
   const [trackedFlightIds, setTrackedFlightIds] = useState<Set<string>>(new Set());
   const [lastApiCall, setLastApiCall] = useState<number>(0);
+  const [apiStatus, setApiStatus] = useState<'working' | 'rate_limited' | 'failed'>('working');
   const [settings, setSettings] = useState<RadarSettings>({
     range: 50, // 50km radius
     showTrails: true,
@@ -68,45 +69,73 @@ export function FlightRadar() {
       
       console.log('Fetching flights for area:', { lamin, lamax, lomin, lomax });
       
-      // OpenSky Network API - using CORS proxy to avoid browser restrictions
-      const apiUrl = `https://opensky-network.org/api/states/all?lamin=${lamin}&lamax=${lamax}&lomin=${lomin}&lomax=${lomax}`;
-      const proxyUrl = `https://api.allorigins.win/get?url=${encodeURIComponent(apiUrl)}`;
-      
-      const response = await fetch(proxyUrl, {
-        headers: {
-          'Accept': 'application/json',
-        },
-        mode: 'cors',
-        cache: 'no-cache'
-      });
-      
-      console.log('API Response status:', response.status, response.statusText);
-      
-      if (!response.ok) {
-        const errorText = await response.text();
-        console.error('API Error Response:', errorText);
-        throw new Error(`OpenSky API request failed: ${response.status} ${response.statusText}`);
-      }
-      
-      const proxyData = await response.json();
-      console.log('Proxy Response data:', proxyData);
-      
-      // Check if the response contains an error message
-      if (typeof proxyData.contents === 'string' && proxyData.contents.includes('Too many requests')) {
-        console.warn('API rate limit exceeded, returning empty data');
-        return [];
-      }
-      
-      // Parse the actual API response from the proxy
+      // Try direct API call first (works in some environments)
+      let response;
       let data;
+      
       try {
-        data = JSON.parse(proxyData.contents);
-      } catch (parseError) {
-        console.error('Failed to parse API response:', parseError);
-        console.log('Raw response:', proxyData.contents);
-        return [];
+        // Direct OpenSky Network API call
+        const apiUrl = `https://opensky-network.org/api/states/all?lamin=${lamin}&lamax=${lamax}&lomin=${lomin}&lomax=${lomax}`;
+        
+        response = await fetch(apiUrl, {
+          headers: {
+            'Accept': 'application/json',
+          },
+          mode: 'cors',
+          cache: 'no-cache'
+        });
+        
+        console.log('Direct API Response status:', response.status, response.statusText);
+        
+        if (response.ok) {
+          data = await response.json();
+          console.log('Direct API Response data:', data);
+        } else {
+          throw new Error(`Direct API failed: ${response.status}`);
+        }
+      } catch (directError) {
+        console.log('Direct API failed, trying proxy:', directError);
+        
+        // Fallback to CORS proxy
+        const apiUrl = `https://opensky-network.org/api/states/all?lamin=${lamin}&lamax=${lamax}&lomin=${lomin}&lomax=${lomax}`;
+        const proxyUrl = `https://api.allorigins.win/get?url=${encodeURIComponent(apiUrl)}`;
+        
+        response = await fetch(proxyUrl, {
+          headers: {
+            'Accept': 'application/json',
+          },
+          mode: 'cors',
+          cache: 'no-cache'
+        });
+        
+        console.log('Proxy Response status:', response.status, response.statusText);
+        
+        if (!response.ok) {
+          const errorText = await response.text();
+          console.error('Proxy Error Response:', errorText);
+          throw new Error(`OpenSky API request failed: ${response.status} ${response.statusText}`);
+        }
+        
+        const proxyData = await response.json();
+        console.log('Proxy Response data:', proxyData);
+        
+        // Check if the response contains an error message
+        if (typeof proxyData.contents === 'string' && proxyData.contents.includes('Too many requests')) {
+          console.warn('API rate limit exceeded, returning empty data');
+          setApiStatus('rate_limited');
+          return [];
+        }
+        
+        // Parse the actual API response from the proxy
+        try {
+          data = JSON.parse(proxyData.contents);
+        } catch (parseError) {
+          console.error('Failed to parse API response:', parseError);
+          console.log('Raw response:', proxyData.contents);
+          return [];
+        }
+        console.log('Parsed API Response data:', data);
       }
-      console.log('API Response data:', data);
       
       if (!data.states || data.states.length === 0) {
         return [];
@@ -251,11 +280,37 @@ export function FlightRadar() {
       );
       
       // Sort by distance from user location
+      setApiStatus('working');
       return flights.sort((a, b) => (a.distance || 0) - (b.distance || 0));
       
     } catch (error) {
       console.error('Failed to fetch real flight data:', error);
-      return [];
+      
+      // Return a single demo flight if API completely fails
+      const demoFlight: FlightData = {
+        id: 'demo-flight-001',
+        callsign: 'DEMO123',
+        airline: 'Demo Airlines',
+        aircraft: 'Boeing 737',
+        registration: 'N12345',
+        registrationCompany: 'Demo Aviation',
+        origin: 'JFK',
+        destination: 'LAX',
+        lat: userLat + 0.01, // Slightly offset from user location
+        lon: userLon + 0.01,
+        altitude: 35000,
+        speed: 450,
+        heading: 270,
+        verticalRate: 0,
+        squawk: '1200',
+        onGround: false,
+        lastUpdate: new Date(),
+        distance: calculateDistance(userLat, userLon, userLat + 0.01, userLon + 0.01)
+      };
+      
+      console.log('Returning demo flight due to API failure');
+      setApiStatus('failed');
+      return [demoFlight];
     }
   }, [settings.range, calculateDistance]);
 
@@ -501,6 +556,12 @@ export function FlightRadar() {
               <br />
               <span className="text-xs text-muted-foreground">
                 Auto-refresh: {settings.updateInterval}s • API throttled: 30s minimum
+                {apiStatus === 'rate_limited' && (
+                  <span className="text-yellow-500 ml-2">• Rate limited</span>
+                )}
+                {apiStatus === 'failed' && (
+                  <span className="text-red-500 ml-2">• API failed (demo mode)</span>
+                )}
               </span>
             </CardDescription>
           </div>
@@ -697,6 +758,9 @@ export function FlightRadar() {
             </CardTitle>
             <CardDescription className="text-sleek text-secondary-enhanced">
               All flights within {settings.range}km range
+              {apiStatus === 'failed' && (
+                <span className="text-red-500 ml-2">(Demo data - API unavailable)</span>
+              )}
             </CardDescription>
           </div>
           <div className="flex items-center gap-2">
