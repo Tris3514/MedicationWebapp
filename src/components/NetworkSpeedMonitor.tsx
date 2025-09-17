@@ -20,7 +20,7 @@ interface NetworkSpeedMonitorProps {
 }
 
 export function NetworkSpeedMonitor({ className }: NetworkSpeedMonitorProps) {
-  const { isAuthenticated, getData, setData } = useUserData();
+  const { isAuthenticated, getData, setData, userData } = useUserData();
   const [currentResult, setCurrentResult] = useState<SpeedTestResult | null>(null);
   const [isTestingDownload, setIsTestingDownload] = useState(false);
   const [isTestingUpload, setIsTestingUpload] = useState(false);
@@ -219,9 +219,9 @@ export function NetworkSpeedMonitor({ className }: NetworkSpeedMonitorProps) {
     }
   }, [testDownloadSpeed, testUploadSpeed, testPing, isAuthenticated, setData]);
 
-  // Load last test result from localStorage
+  // Load last test result when user data is available
   useEffect(() => {
-    if (isAuthenticated) {
+    if (isAuthenticated && userData) {
       // Load from user-specific data
       const saved = getData('networkSpeedTest');
       if (saved) {
@@ -231,7 +231,7 @@ export function NetworkSpeedMonitor({ className }: NetworkSpeedMonitorProps) {
         });
         setLastTestTime(new Date(saved.timestamp));
       }
-    } else {
+    } else if (!isAuthenticated) {
       // Fallback to localStorage for non-authenticated users
       const saved = localStorage.getItem('network-speed-test');
       if (saved) {
@@ -247,7 +247,7 @@ export function NetworkSpeedMonitor({ className }: NetworkSpeedMonitorProps) {
         }
       }
     }
-  }, [isAuthenticated, getData]);
+  }, [isAuthenticated, userData, getData]);
 
   // Auto-test on component mount if no recent data
   useEffect(() => {

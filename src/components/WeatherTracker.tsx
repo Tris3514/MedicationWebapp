@@ -27,7 +27,7 @@ interface WeatherTrackerProps {
 }
 
 export function WeatherTracker({ isActive = false }: WeatherTrackerProps = {}) {
-  const { isAuthenticated, getData, setData } = useUserData();
+  const { isAuthenticated, getData, setData, userData } = useUserData();
   const [locations, setLocations] = useState<WeatherLocation[]>([]);
   const [weatherData, setWeatherData] = useState<{ [key: string]: WeatherData }>({});
   const [activeLocationId, setActiveLocationId] = useState<string | null>(null);
@@ -38,16 +38,16 @@ export function WeatherTracker({ isActive = false }: WeatherTrackerProps = {}) {
   const [isSearching, setIsSearching] = useState(false);
   const [showSuggestions, setShowSuggestions] = useState(false);
 
-  // Load data from localStorage
+  // Load data when user data is available
   useEffect(() => {
-    if (isAuthenticated) {
+    if (isAuthenticated && userData) {
       // Load from user-specific data
       const weatherLocations = getData('weatherLocations') || [];
       setLocations(weatherLocations);
       if (weatherLocations.length > 0) {
         setActiveLocationId(weatherLocations[0].id);
       }
-    } else {
+    } else if (!isAuthenticated) {
       // Fallback to localStorage for non-authenticated users
       const savedData = localStorage.getItem(STORAGE_KEY);
       if (savedData) {
@@ -62,19 +62,18 @@ export function WeatherTracker({ isActive = false }: WeatherTrackerProps = {}) {
         }
       }
     }
-  }, [isAuthenticated, getData]);
+  }, [isAuthenticated, userData, getData]);
 
-  // Save data to localStorage
+  // Save data immediately whenever locations change
   useEffect(() => {
-    if (locations.length > 0) {
-      // Save to user-specific data if authenticated, otherwise fallback to localStorage
-      if (isAuthenticated) {
-        setData('weatherLocations', locations);
-      } else {
-        localStorage.setItem(STORAGE_KEY, JSON.stringify({ locations }));
-      }
+    if (locations.length > 0 && isAuthenticated && userData) {
+      // Save to user-specific data immediately
+      setData('weatherLocations', locations);
+    } else if (locations.length > 0 && !isAuthenticated) {
+      // Fallback to localStorage for non-authenticated users
+      localStorage.setItem(STORAGE_KEY, JSON.stringify({ locations }));
     }
-  }, [locations, isAuthenticated, setData]);
+  }, [locations, isAuthenticated, userData, setData]);
 
   const fetchWeatherData = useCallback(async (location: WeatherLocation) => {
     setLoading(prev => ({ ...prev, [location.id]: true }));

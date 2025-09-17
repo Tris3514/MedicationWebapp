@@ -1,79 +1,43 @@
 /**
  * Custom hook for managing user-specific data
+ * Now uses the global UserDataContext for centralized data management
  */
 
 import { useAuth } from '@/contexts/AuthContext';
-import { getUserData, saveUserData, saveUserDataDebounced, saveUserDataImmediate, UserData } from '@/utils/userDataManager';
-import { useCallback } from 'react';
+import { useUserDataContext } from '@/contexts/UserDataContext';
+import { UserData } from '@/utils/userDataManager';
 
 export function useUserData() {
   const { user, isAuthenticated } = useAuth();
+  const { userData, updateData, updateMultipleData, getData, saveData } = useUserDataContext();
 
-  const getCurrentUserData = useCallback((): UserData | null => {
-    if (!isAuthenticated || !user?.id) {
-      return null;
-    }
-    return getUserData(user.id);
-  }, [isAuthenticated, user?.id]);
+  // Legacy compatibility methods
+  const getCurrentUserData = (): UserData | null => {
+    return userData;
+  };
 
-  const saveData = useCallback((data: Partial<UserData>) => {
-    if (!isAuthenticated || !user?.id) {
-      console.warn('Cannot save data: user not authenticated');
-      return;
-    }
+  const saveDataLegacy = (data: Partial<UserData>) => {
+    updateMultipleData(data);
+  };
 
-    const currentData = getUserData(user.id);
-    const updatedData = { ...currentData, ...data };
-    saveUserDataDebounced(user.id, updatedData);
-  }, [isAuthenticated, user?.id]);
+  const setData = <K extends keyof UserData>(key: K, value: UserData[K]) => {
+    updateData(key, value);
+  };
 
-  const getData = useCallback(<K extends keyof UserData>(key: K): UserData[K] | null => {
-    if (!isAuthenticated || !user?.id) {
-      return null;
-    }
+  const saveDataImmediate = (data: Partial<UserData>) => {
+    updateMultipleData(data);
+  };
 
-    const userData = getUserData(user.id);
-    return userData[key] || null;
-  }, [isAuthenticated, user?.id]);
-
-  const setData = useCallback(<K extends keyof UserData>(key: K, value: UserData[K]) => {
-    if (!isAuthenticated || !user?.id) {
-      console.warn('Cannot set data: user not authenticated');
-      return;
-    }
-
-    const currentData = getUserData(user.id);
-    const updatedData = { ...currentData, [key]: value };
-    saveUserDataDebounced(user.id, updatedData);
-  }, [isAuthenticated, user?.id]);
-
-  const saveDataImmediate = useCallback((data: Partial<UserData>) => {
-    if (!isAuthenticated || !user?.id) {
-      console.warn('Cannot save data: user not authenticated');
-      return;
-    }
-
-    const currentData = getUserData(user.id);
-    const updatedData = { ...currentData, ...data };
-    saveUserDataImmediate(user.id, updatedData);
-  }, [isAuthenticated, user?.id]);
-
-  const setDataImmediate = useCallback(<K extends keyof UserData>(key: K, value: UserData[K]) => {
-    if (!isAuthenticated || !user?.id) {
-      console.warn('Cannot set data: user not authenticated');
-      return;
-    }
-
-    const currentData = getUserData(user.id);
-    const updatedData = { ...currentData, [key]: value };
-    saveUserDataImmediate(user.id, updatedData);
-  }, [isAuthenticated, user?.id]);
+  const setDataImmediate = <K extends keyof UserData>(key: K, value: UserData[K]) => {
+    updateData(key, value);
+  };
 
   return {
     isAuthenticated,
     user,
+    userData,
     getCurrentUserData,
-    saveData,
+    saveData: saveDataLegacy,
     getData,
     setData,
     saveDataImmediate,

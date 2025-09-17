@@ -303,7 +303,7 @@ const renderContent = (contentType: ContentType) => {
 };
 
 export function DataDashboard() {
-  const { isAuthenticated, getData, setData } = useUserData();
+  const { isAuthenticated, getData, setData, user, userData } = useUserData();
   const [cards, setCards] = useState<DashboardCard[]>(initialCards);
   const [draggedCard, setDraggedCard] = useState<string | null>(null);
   const [dragOverIndex, setDragOverIndex] = useState<number | null>(null);
@@ -312,40 +312,42 @@ export function DataDashboard() {
   const [showPrefabsSidebar, setShowPrefabsSidebar] = useState(false);
   const [draggedPrefab, setDraggedPrefab] = useState<number | null>(null);
 
-  // Load saved dashboard cards on component mount
+  // Load saved dashboard cards when user data is available
   useEffect(() => {
-    if (isAuthenticated) {
-      // Load from user-specific data
+    if (isAuthenticated && userData) {
       const savedCards = getData('dashboardCards') || [];
       if (savedCards.length > 0) {
+        console.log('Loading saved dashboard cards:', savedCards);
         setCards(savedCards);
+      } else {
+        console.log('No saved dashboard cards found, using initial cards');
       }
-    } else {
+    } else if (!isAuthenticated) {
       // Fallback to localStorage for non-authenticated users
       const savedData = localStorage.getItem('data-dashboard-cards');
       if (savedData) {
         try {
           const parsedCards = JSON.parse(savedData);
+          console.log('Loading dashboard cards from localStorage:', parsedCards);
           setCards(parsedCards);
         } catch (error) {
           console.error("Failed to load dashboard cards from storage:", error);
         }
       }
     }
-  }, [isAuthenticated, getData]);
+  }, [isAuthenticated, userData, getData]);
 
-  // Save dashboard cards whenever they change
+  // Save dashboard cards whenever they change (immediate saving)
   useEffect(() => {
-    if (cards.length > 0) {
-      if (isAuthenticated) {
-        // Save to user-specific data
-        setData('dashboardCards', cards);
-      } else {
-        // Fallback to localStorage for non-authenticated users
-        localStorage.setItem('data-dashboard-cards', JSON.stringify(cards));
-      }
+    if (cards.length > 0 && isAuthenticated && userData) {
+      console.log('Saving dashboard cards to user data:', cards);
+      setData('dashboardCards', cards);
+    } else if (cards.length > 0 && !isAuthenticated) {
+      // Fallback to localStorage for non-authenticated users
+      console.log('Saving dashboard cards to localStorage:', cards);
+      localStorage.setItem('data-dashboard-cards', JSON.stringify(cards));
     }
-  }, [cards, isAuthenticated, setData]);
+  }, [cards, isAuthenticated, userData, setData]);
 
   const generateId = () => {
     return Date.now().toString() + Math.random().toString(36).substr(2, 9);

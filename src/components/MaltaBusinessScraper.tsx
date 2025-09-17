@@ -56,7 +56,7 @@ const businessCategories = [
 ];
 
 export function MaltaBusinessScraper() {
-  const { isAuthenticated, getData, setData } = useUserData();
+  const { isAuthenticated, getData, setData, userData } = useUserData();
   const [businesses, setBusinesses] = useState<Business[]>([]);
   const [filteredBusinesses, setFilteredBusinesses] = useState<Business[]>([]);
   const [savedBusinesses, setSavedBusinesses] = useState<Business[]>([]);
@@ -79,7 +79,7 @@ export function MaltaBusinessScraper() {
   // Load saved and blacklisted businesses from localStorage
   useEffect(() => {
     try {
-      if (isAuthenticated) {
+      if (isAuthenticated && userData) {
         // Load from user-specific data
         const savedData = getData('savedBusinesses') || [];
         const blacklistedData = getData('blacklistedBusinesses') || [];
@@ -93,7 +93,7 @@ export function MaltaBusinessScraper() {
           ...b,
           lastUpdated: new Date(b.lastUpdated)
         })));
-      } else {
+      } else if (!isAuthenticated) {
         // Fallback to localStorage for non-authenticated users
         const savedData = localStorage.getItem(SAVED_BUSINESSES_KEY);
         if (savedData) {
@@ -116,31 +116,29 @@ export function MaltaBusinessScraper() {
     } catch (error) {
       console.error('Failed to load saved/blacklisted businesses:', error);
     }
-  }, [isAuthenticated, getData]);
+  }, [isAuthenticated, userData, getData]);
 
-  // Save to localStorage whenever saved businesses change
+  // Save immediately whenever saved businesses change
   useEffect(() => {
-    if (savedBusinesses.length > 0) {
-      // Save to user-specific data if authenticated, otherwise fallback to localStorage
-      if (isAuthenticated) {
-        setData('savedBusinesses', savedBusinesses);
-      } else {
-        localStorage.setItem(SAVED_BUSINESSES_KEY, JSON.stringify(savedBusinesses));
-      }
+    if (savedBusinesses.length > 0 && isAuthenticated && userData) {
+      // Save to user-specific data immediately
+      setData('savedBusinesses', savedBusinesses);
+    } else if (savedBusinesses.length > 0 && !isAuthenticated) {
+      // Fallback to localStorage for non-authenticated users
+      localStorage.setItem(SAVED_BUSINESSES_KEY, JSON.stringify(savedBusinesses));
     }
-  }, [savedBusinesses, isAuthenticated, setData]);
+  }, [savedBusinesses, isAuthenticated, userData, setData]);
 
-  // Save to localStorage whenever blacklisted businesses change
+  // Save immediately whenever blacklisted businesses change
   useEffect(() => {
-    if (blacklistedBusinesses.length > 0) {
-      // Save to user-specific data if authenticated, otherwise fallback to localStorage
-      if (isAuthenticated) {
-        setData('blacklistedBusinesses', blacklistedBusinesses);
-      } else {
-        localStorage.setItem(BLACKLISTED_BUSINESSES_KEY, JSON.stringify(blacklistedBusinesses));
-      }
+    if (blacklistedBusinesses.length > 0 && isAuthenticated && userData) {
+      // Save to user-specific data immediately
+      setData('blacklistedBusinesses', blacklistedBusinesses);
+    } else if (blacklistedBusinesses.length > 0 && !isAuthenticated) {
+      // Fallback to localStorage for non-authenticated users
+      localStorage.setItem(BLACKLISTED_BUSINESSES_KEY, JSON.stringify(blacklistedBusinesses));
     }
-  }, [blacklistedBusinesses, isAuthenticated, setData]);
+  }, [blacklistedBusinesses, isAuthenticated, userData, setData]);
 
   // Scrape real Malta business data from multiple sources
   const scrapeRealMaltaBusinesses = useCallback(async (category: string = ""): Promise<Business[]> => {

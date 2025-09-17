@@ -12,12 +12,12 @@ import { useUserData } from "@/hooks/useUserData";
 const STORAGE_KEY = "medication-tracker-data";
 
 export function MedicationTracker() {
-  const { isAuthenticated, getData, setData, setDataImmediate } = useUserData();
+  const { isAuthenticated, getData, setData, setDataImmediate, userData } = useUserData();
   const [medications, setMedications] = useState<Medication[]>([]);
 
-  // Load data from localStorage on component mount
+  // Load data when user data is available
   useEffect(() => {
-    if (isAuthenticated) {
+    if (isAuthenticated && userData) {
       // Load from user-specific data
       const savedData = getData('medications') || [];
       // Convert date strings back to Date objects
@@ -26,7 +26,7 @@ export function MedicationTracker() {
         lastTaken: med.lastTaken ? new Date(med.lastTaken) : undefined,
       }));
       setMedications(medicationsWithDates);
-    } else {
+    } else if (!isAuthenticated) {
       // Fallback to localStorage for non-authenticated users
       const savedData = localStorage.getItem(STORAGE_KEY);
       if (savedData) {
@@ -43,19 +43,18 @@ export function MedicationTracker() {
         }
       }
     }
-  }, [isAuthenticated, getData]);
+  }, [isAuthenticated, userData, getData]);
 
-  // Save data to localStorage whenever medications change
+  // Save data immediately whenever medications change
   useEffect(() => {
-    if (medications.length > 0) {
-      // Save to user-specific data if authenticated, otherwise fallback to localStorage
-      if (isAuthenticated) {
-        setData('medications', medications);
-      } else {
-        localStorage.setItem(STORAGE_KEY, JSON.stringify(medications));
-      }
+    if (medications.length > 0 && isAuthenticated && userData) {
+      // Save to user-specific data immediately
+      setData('medications', medications);
+    } else if (medications.length > 0 && !isAuthenticated) {
+      // Fallback to localStorage for non-authenticated users
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(medications));
     }
-  }, [medications, isAuthenticated, setData]);
+  }, [medications, isAuthenticated, userData, setData]);
 
   // Check if it's a new day and reset "taken today" status
   useEffect(() => {

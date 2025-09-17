@@ -172,14 +172,14 @@ export function AuthProvider({ children }: AuthProviderProps) {
   };
 
   const logout = () => {
-    // Save any pending data immediately before clearing
+    // Save any pending data immediately before logout
     if (authState.user?.id) {
       // Force save any pending debounced saves
       const currentData = getUserData(authState.user.id);
       saveUserDataImmediate(authState.user.id, currentData);
       
-      // Clear user data
-      clearUserData(authState.user.id);
+      // Note: We do NOT clear user data - it should persist for future logins
+      console.log('User logged out, data preserved for future login');
     }
     
     localStorage.removeItem('user_data');

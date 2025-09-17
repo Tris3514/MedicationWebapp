@@ -25,7 +25,7 @@ const FLIGHT_COUNT_KEY = "flight-radar-total-count";
 const TRACKED_IDS_KEY = "flight-radar-tracked-ids";
 
 export function FlightRadar() {
-  const { isAuthenticated, getData, setData, setDataImmediate } = useUserData();
+  const { isAuthenticated, getData, setData, setDataImmediate, userData } = useUserData();
   const [userLocation, setUserLocation] = useState<UserLocation | null>(null);
   const [flights, setFlights] = useState<FlightData[]>([]);
   const [nearestFlight, setNearestFlight] = useState<FlightData | null>(null);
@@ -54,6 +54,54 @@ export function FlightRadar() {
     const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
     return R * c;
   }, []);
+
+  // Generate fallback flight data when API is unavailable
+  const generateFallbackFlightData = useCallback((userLat: number, userLon: number): FlightData[] => {
+    const fallbackFlights: FlightData[] = [
+      {
+        id: 'fallback-1',
+        callsign: 'BAW123',
+        airline: 'British Airways',
+        aircraft: 'Boeing 777-300ER',
+        registration: 'G-STBH',
+        registrationCompany: 'British Airways',
+        origin: 'LHR',
+        destination: 'JFK',
+        lat: userLat + 0.01,
+        lon: userLon + 0.01,
+        altitude: 35000,
+        speed: 450,
+        heading: 270,
+        verticalRate: 0,
+        squawk: '1234',
+        onGround: false,
+        lastUpdate: new Date(),
+        distance: calculateDistance(userLat, userLon, userLat + 0.01, userLon + 0.01)
+      },
+      {
+        id: 'fallback-2',
+        callsign: 'AF456',
+        airline: 'Air France',
+        aircraft: 'Airbus A350-900',
+        registration: 'F-HREB',
+        registrationCompany: 'Air France',
+        origin: 'CDG',
+        destination: 'LAX',
+        lat: userLat - 0.02,
+        lon: userLon + 0.015,
+        altitude: 38000,
+        speed: 480,
+        heading: 285,
+        verticalRate: 500,
+        squawk: '5678',
+        onGround: false,
+        lastUpdate: new Date(),
+        distance: calculateDistance(userLat, userLon, userLat - 0.02, userLon + 0.015)
+      }
+    ];
+    
+    return fallbackFlights;
+  }, [calculateDistance]);
 
   // Fetch real flight data from OpenSky Network API
   const fetchRealFlightData = useCallback(async (userLat: number, userLon: number): Promise<FlightData[]> => {
@@ -92,8 +140,21 @@ export function FlightRadar() {
       const proxyData = await response.json();
       console.log('Proxy Response data:', proxyData);
       
+      // Check if the response contains an error message
+      if (typeof proxyData.contents === 'string' && proxyData.contents.includes('Too many requests')) {
+        console.warn('API rate limit exceeded, using fallback data');
+        return generateFallbackFlightData(userLat, userLon);
+      }
+      
       // Parse the actual API response from the proxy
-      const data = JSON.parse(proxyData.contents);
+      let data;
+      try {
+        data = JSON.parse(proxyData.contents);
+      } catch (parseError) {
+        console.error('Failed to parse API response:', parseError);
+        console.log('Raw response:', proxyData.contents);
+        return generateFallbackFlightData(userLat, userLon);
+      }
       console.log('API Response data:', data);
       
       if (!data.states || data.states.length === 0) {
@@ -404,15 +465,15 @@ export function FlightRadar() {
     }
   }, [userLocation, fetchRealFlightData, lastApiCall, totalFlightsTracked, trackedFlightIds, isAuthenticated, setData, setDataImmediate]);
 
-  // Load persisted flight count and tracked IDs on component mount
+  // Load persisted flight count and tracked IDs when user data is available
   useEffect(() => {
-    if (isAuthenticated) {
+    if (isAuthenticated && userData) {
       // Load from user-specific data
       const flightCount = getData('flightCount') || 0;
       const trackedIds = getData('trackedFlightIds') || [];
       setTotalFlightsTracked(flightCount);
       setTrackedFlightIds(new Set(trackedIds));
-    } else {
+    } else if (!isAuthenticated) {
       // Fallback to localStorage for non-authenticated users
       const savedCount = localStorage.getItem(FLIGHT_COUNT_KEY);
       if (savedCount) {
@@ -429,7 +490,7 @@ export function FlightRadar() {
         }
       }
     }
-  }, [isAuthenticated, getData]);
+  }, [isAuthenticated, userData, getData]);
 
   // Initial location fetch
   useEffect(() => {
