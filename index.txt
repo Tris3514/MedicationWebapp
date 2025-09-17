@@ -1,22 +1,20 @@
 1:"$Sreact.fragment"
-2:I[3479,["855","static/chunks/855-a5b4d7a4253c97a2.js","177","static/chunks/app/layout-4783e1c62503f3b6.js"],"ThemeProvider"]
-3:I[5380,["855","static/chunks/855-a5b4d7a4253c97a2.js","177","static/chunks/app/layout-4783e1c62503f3b6.js"],"AuthProvider"]
-4:I[2805,["855","static/chunks/855-a5b4d7a4253c97a2.js","177","static/chunks/app/layout-4783e1c62503f3b6.js"],"UserDataProvider"]
-5:I[9766,[],""]
-6:I[8924,[],""]
-7:I[1959,[],"ClientPageRoot"]
-8:I[280,["633","static/chunks/633-28af36136ab47d6b.js","855","static/chunks/855-a5b4d7a4253c97a2.js","974","static/chunks/app/page-eadf434cd358cf77.js"],"default"]
-b:I[4431,[],"OutletBoundary"]
-d:I[5278,[],"AsyncMetadataOutlet"]
-f:I[4431,[],"ViewportBoundary"]
-11:I[4431,[],"MetadataBoundary"]
-12:"$Sreact.suspense"
-14:I[7150,[],""]
-:HL["/MedicationWebapp/_next/static/css/eea3014ae5ccd9aa.css","style"]
-0:{"P":null,"b":"TQ_Pq5-gcYZO113yG5aVs","p":"/MedicationWebapp","c":["",""],"i":false,"f":[[["",{"children":["__PAGE__",{}]},"$undefined","$undefined",true],["",["$","$1","c",{"children":[[["$","link","0",{"rel":"stylesheet","href":"/MedicationWebapp/_next/static/css/eea3014ae5ccd9aa.css","precedence":"next","crossOrigin":"$undefined","nonce":"$undefined"}]],["$","html",null,{"lang":"en","children":["$","body",null,{"className":"font-helvetica","children":["$","$L2",null,{"defaultTheme":"dark","children":["$","$L3",null,{"children":["$","$L4",null,{"children":["$","$L5",null,{"parallelRouterKey":"children","error":"$undefined","errorStyles":"$undefined","errorScripts":"$undefined","template":["$","$L6",null,{}],"templateStyles":"$undefined","templateScripts":"$undefined","notFound":[[["$","title",null,{"children":"404: This page could not be found."}],["$","div",null,{"style":{"fontFamily":"system-ui,\"Segoe UI\",Roboto,Helvetica,Arial,sans-serif,\"Apple Color Emoji\",\"Segoe UI Emoji\"","height":"100vh","textAlign":"center","display":"flex","flexDirection":"column","alignItems":"center","justifyContent":"center"},"children":["$","div",null,{"children":[["$","style",null,{"dangerouslySetInnerHTML":{"__html":"body{color:#000;background:#fff;margin:0}.next-error-h1{border-right:1px solid rgba(0,0,0,.3)}@media (prefers-color-scheme:dark){body{color:#fff;background:#000}.next-error-h1{border-right:1px solid rgba(255,255,255,.3)}}"}}],["$","h1",null,{"className":"next-error-h1","style":{"display":"inline-block","margin":"0 20px 0 0","padding":"0 23px 0 0","fontSize":24,"fontWeight":500,"verticalAlign":"top","lineHeight":"49px"},"children":404}],["$","div",null,{"style":{"display":"inline-block"},"children":["$","h2",null,{"style":{"fontSize":14,"fontWeight":400,"lineHeight":"49px","margin":0},"children":"This page could not be found."}]}]]}]}]],[]],"forbidden":"$undefined","unauthorized":"$undefined"}]}]}]}]}]}]]}],{"children":["__PAGE__",["$","$1","c",{"children":[["$","$L7",null,{"Component":"$8","searchParams":{},"params":{},"promises":["$@9","$@a"]}],null,["$","$Lb",null,{"children":["$Lc",["$","$Ld",null,{"promise":"$@e"}]]}]]}],{},null,false]},null,false],["$","$1","h",{"children":[null,[["$","$Lf",null,{"children":"$L10"}],null],["$","$L11",null,{"children":["$","div",null,{"hidden":true,"children":["$","$12",null,{"fallback":null,"children":"$L13"}]}]}]]}],false]],"m":"$undefined","G":["$14",[]],"s":false,"S":true}
-9:{}
-a:"$0:f:0:1:2:children:1:props:children:0:props:params"
-10:[["$","meta","0",{"charSet":"utf-8"}],["$","meta","1",{"name":"viewport","content":"width=device-width, initial-scale=1"}]]
-c:null
-e:{"metadata":[["$","title","0",{"children":"Medication Tracker"}],["$","meta","1",{"name":"description","content":"Track your daily medications and pill counts"}]],"error":null,"digest":"$undefined"}
-13:"$e:metadata"
+2:I[3479,["177","static/chunks/app/layout-19f1f22c49f5bd59.js"],"ThemeProvider"]
+3:I[9766,[],""]
+4:I[8924,[],""]
+5:I[1959,[],"ClientPageRoot"]
+6:I[4649,["27","static/chunks/27-0f02974865a169bb.js","974","static/chunks/app/page-90313d0f657c7698.js"],"default"]
+9:I[4431,[],"OutletBoundary"]
+b:I[5278,[],"AsyncMetadataOutlet"]
+d:I[4431,[],"ViewportBoundary"]
+f:I[4431,[],"MetadataBoundary"]
+10:"$Sreact.suspense"
+12:I[7150,[],""]
+:HL["/MedicationWebapp/_next/static/css/786c27fb5fdd2795.css","style"]
+0:{"P":null,"b":"MPIqjKPOnFJa5wm3D2wLO","p":"/MedicationWebapp","c":["",""],"i":false,"f":[[["",{"children":["__PAGE__",{}]},"$undefined","$undefined",true],["",["$","$1","c",{"children":[[["$","link","0",{"rel":"stylesheet","href":"/MedicationWebapp/_next/static/css/786c27fb5fdd2795.css","precedence":"next","crossOrigin":"$undefined","nonce":"$undefined"}]],["$","html",null,{"lang":"en","children":["$","body",null,{"className":"font-helvetica","children":["$","$L2",null,{"defaultTheme":"dark","children":["$","$L3",null,{"parallelRouterKey":"children","error":"$undefined","errorStyles":"$undefined","errorScripts":"$undefined","template":["$","$L4",null,{}],"templateStyles":"$undefined","templateScripts":"$undefined","notFound":[[["$","title",null,{"children":"404: This page could not be found."}],["$","div",null,{"style":{"fontFamily":"system-ui,\"Segoe UI\",Roboto,Helvetica,Arial,sans-serif,\"Apple Color Emoji\",\"Segoe UI Emoji\"","height":"100vh","textAlign":"center","display":"flex","flexDirection":"column","alignItems":"center","justifyContent":"center"},"children":["$","div",null,{"children":[["$","style",null,{"dangerouslySetInnerHTML":{"__html":"body{color:#000;background:#fff;margin:0}.next-error-h1{border-right:1px solid rgba(0,0,0,.3)}@media (prefers-color-scheme:dark){body{color:#fff;background:#000}.next-error-h1{border-right:1px solid rgba(255,255,255,.3)}}"}}],["$","h1",null,{"className":"next-error-h1","style":{"display":"inline-block","margin":"0 20px 0 0","padding":"0 23px 0 0","fontSize":24,"fontWeight":500,"verticalAlign":"top","lineHeight":"49px"},"children":404}],["$","div",null,{"style":{"display":"inline-block"},"children":["$","h2",null,{"style":{"fontSize":14,"fontWeight":400,"lineHeight":"49px","margin":0},"children":"This page could not be found."}]}]]}]}]],[]],"forbidden":"$undefined","unauthorized":"$undefined"}]}]}]}]]}],{"children":["__PAGE__",["$","$1","c",{"children":[["$","$L5",null,{"Component":"$6","searchParams":{},"params":{},"promises":["$@7","$@8"]}],null,["$","$L9",null,{"children":["$La",["$","$Lb",null,{"promise":"$@c"}]]}]]}],{},null,false]},null,false],["$","$1","h",{"children":[null,[["$","$Ld",null,{"children":"$Le"}],null],["$","$Lf",null,{"children":["$","div",null,{"hidden":true,"children":["$","$10",null,{"fallback":null,"children":"$L11"}]}]}]]}],false]],"m":"$undefined","G":["$12",[]],"s":false,"S":true}
+7:{}
+8:"$0:f:0:1:2:children:1:props:children:0:props:params"
+e:[["$","meta","0",{"charSet":"utf-8"}],["$","meta","1",{"name":"viewport","content":"width=device-width, initial-scale=1"}]]
+a:null
+c:{"metadata":[["$","title","0",{"children":"Medication Tracker"}],["$","meta","1",{"name":"description","content":"Track your daily medications and pill counts"}]],"error":null,"digest":"$undefined"}
+11:"$c:metadata"
