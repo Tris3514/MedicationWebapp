@@ -27,13 +27,23 @@ import { useUserData } from "@/hooks/useUserData";
 
 export type CardSize = "2x1" | "2x2";
 
+export type ContentType = 
+  | "world-clock"
+  | "network-speed"
+  | "analytics"
+  | "performance"
+  | "security"
+  | "data-insights"
+  | "storage"
+  | "system-status";
+
 export interface DashboardCard {
   id: string;
   title: string;
   description: string;
   size: CardSize;
-  icon: React.ReactNode;
-  content: React.ReactNode;
+  icon: string; // Store icon name instead of React element
+  contentType: ContentType; // Store content type instead of React element
 }
 
 const initialCards: DashboardCard[] = [
@@ -42,16 +52,140 @@ const initialCards: DashboardCard[] = [
     title: "World Clock",
     description: "Time in different locations",
     size: "2x2",
-    icon: <Clock className="h-5 w-5" />,
-    content: <WorldClock />
+    icon: "Clock",
+    contentType: "world-clock"
   },
   {
     id: "performance-metrics",
     title: "Performance",
     description: "System performance and trends",
     size: "2x2",
-    icon: <TrendingUp className="h-5 w-5" />,
-    content: (
+    icon: "TrendingUp",
+    contentType: "performance"
+  },
+  {
+    id: "analytics-overview",
+    title: "Analytics Overview",
+    description: "Key metrics and insights",
+    size: "2x2",
+    icon: "BarChart3",
+    contentType: "analytics"
+  },
+  {
+    id: "network-status",
+    title: "Network Status",
+    description: "Network performance monitoring",
+    size: "2x2",
+    icon: "Settings",
+    contentType: "system-status"
+  },
+  {
+    id: "data-insights",
+    title: "Data Insights",
+    description: "AI-powered data analysis",
+    size: "2x2",
+    icon: "PieChart",
+    contentType: "data-insights"
+  },
+  {
+    id: "security-monitor",
+    title: "Security Monitor",
+    description: "System security and alerts",
+    size: "2x2",
+    icon: "Database",
+    contentType: "security"
+  },
+  {
+    id: "network-speed",
+    title: "Network Speed",
+    description: "Real-time upload & download monitoring",
+    size: "2x2",
+    icon: "Wifi",
+    contentType: "network-speed"
+  }
+];
+
+// Card prefabs for the sidebar
+const cardPrefabs: Omit<DashboardCard, 'id'>[] = [
+  {
+    title: "World Clock",
+    description: "Time in different locations",
+    size: "2x2",
+    icon: "Clock",
+    contentType: "world-clock"
+  },
+  {
+    title: "Network Speed",
+    description: "Real-time upload & download monitoring",
+    size: "2x2",
+    icon: "Wifi",
+    contentType: "network-speed"
+  },
+  {
+    title: "Analytics",
+    description: "Key metrics and KPIs",
+    size: "2x2",
+    icon: "BarChart3",
+    contentType: "analytics"
+  },
+  {
+    title: "Storage",
+    description: "Usage and capacity",
+    size: "2x1",
+    icon: "Database",
+    contentType: "storage"
+  },
+  {
+    title: "System Status",
+    description: "Health monitoring",
+    size: "2x1",
+    icon: "Settings",
+    contentType: "system-status"
+  }
+];
+
+// Helper function to render icon from string name
+const renderIcon = (iconName: string) => {
+  const iconProps = { className: "h-5 w-5" };
+  switch (iconName) {
+    case "Clock": return <Clock {...iconProps} />;
+    case "TrendingUp": return <TrendingUp {...iconProps} />;
+    case "BarChart3": return <BarChart3 {...iconProps} />;
+    case "Settings": return <Settings {...iconProps} />;
+    case "PieChart": return <PieChart {...iconProps} />;
+    case "Database": return <Database {...iconProps} />;
+    case "Wifi": return <Wifi {...iconProps} />;
+    default: return <Database {...iconProps} />;
+  }
+};
+
+// Helper function to render content based on content type
+const renderContent = (contentType: ContentType) => {
+  switch (contentType) {
+    case "world-clock":
+      return <WorldClock />;
+    case "network-speed":
+      return <NetworkSpeedMonitor />;
+    case "analytics":
+      return (
+        <div className="space-y-3 h-full">
+          <div className="grid grid-cols-2 gap-3">
+            <div className="text-center">
+              <div className="text-xl font-bold text-primary-enhanced">1,247</div>
+              <div className="text-xs text-muted-foreground">Records</div>
+            </div>
+            <div className="text-center">
+              <div className="text-xl font-bold text-green-400">98.5%</div>
+              <div className="text-xs text-muted-foreground">Uptime</div>
+            </div>
+          </div>
+          <div className="flex-1 bg-gradient-to-r from-primary/20 to-primary/5 rounded-md flex items-center justify-center min-h-[80px]">
+            <span className="text-muted-foreground text-sm">📊 Chart</span>
+          </div>
+        </div>
+      );
+    case "performance":
+      return (
       <div className="space-y-3 h-full">
         <div className="grid grid-cols-3 gap-2 text-center">
           <div>
@@ -71,100 +205,9 @@ const initialCards: DashboardCard[] = [
           <span className="text-muted-foreground text-xs mb-2">📈 Graph</span>
         </div>
       </div>
-    )
-  },
-  {
-    id: "analytics-overview",
-    title: "Analytics Overview",
-    description: "Key metrics and insights",
-    size: "2x2",
-    icon: <BarChart3 className="h-5 w-5" />,
-    content: (
-      <div className="space-y-3 h-full">
-        <div className="grid grid-cols-2 gap-3">
-          <div className="text-center">
-            <div className="text-xl font-bold text-primary-enhanced">1,247</div>
-            <div className="text-xs text-muted-foreground">Records</div>
-          </div>
-          <div className="text-center">
-            <div className="text-xl font-bold text-green-400">98.5%</div>
-            <div className="text-xs text-muted-foreground">Uptime</div>
-          </div>
-        </div>
-        <div className="flex-1 bg-gradient-to-r from-primary/20 to-primary/5 rounded-md flex items-center justify-center min-h-[80px]">
-          <span className="text-muted-foreground text-sm">📊 Chart</span>
-        </div>
-      </div>
-    )
-  },
-  {
-    id: "network-status",
-    title: "Network Status",
-    description: "Network performance monitoring",
-    size: "2x2",
-    icon: <Settings className="h-5 w-5" />,
-    content: (
-      <div className="space-y-3 h-full">
-        <div className="grid grid-cols-2 gap-3">
-          <div className="text-center">
-            <div className="text-lg font-bold text-green-400">Online</div>
-            <div className="text-xs text-muted-foreground">Status</div>
-          </div>
-          <div className="text-center">
-            <div className="text-lg font-bold text-blue-400">15ms</div>
-            <div className="text-xs text-muted-foreground">Latency</div>
-          </div>
-        </div>
-        <div className="space-y-2">
-          <div className="flex justify-between text-xs">
-            <span>CPU Usage</span>
-            <span>23%</span>
-          </div>
-          <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-1">
-            <div className="bg-green-500 h-1 rounded-full" style={{ width: '23%' }}></div>
-          </div>
-          <div className="flex justify-between text-xs">
-            <span>Memory</span>
-            <span>67%</span>
-          </div>
-          <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-1">
-            <div className="bg-orange-500 h-1 rounded-full" style={{ width: '67%' }}></div>
-          </div>
-        </div>
-      </div>
-    )
-  },
-  {
-    id: "data-insights",
-    title: "Data Insights",
-    description: "AI-powered data analysis",
-    size: "2x2",
-    icon: <PieChart className="h-5 w-5" />,
-    content: (
-      <div className="space-y-3 h-full">
-        <div className="grid grid-cols-2 gap-3 text-center">
-          <div>
-            <div className="text-lg font-bold text-purple-400">87%</div>
-            <div className="text-xs text-muted-foreground">Accuracy</div>
-          </div>
-          <div>
-            <div className="text-lg font-bold text-cyan-400">342</div>
-            <div className="text-xs text-muted-foreground">Insights</div>
-          </div>
-        </div>
-        <div className="flex-1 bg-gradient-to-br from-purple-500/20 via-cyan-500/20 to-transparent rounded-md flex items-center justify-center min-h-[80px]">
-          <span className="text-muted-foreground text-sm">🧠 AI Analysis</span>
-        </div>
-      </div>
-    )
-  },
-  {
-    id: "security-monitor",
-    title: "Security Monitor",
-    description: "System security and alerts",
-    size: "2x2",
-    icon: <Database className="h-5 w-5" />,
-    content: (
+      );
+    case "security":
+      return (
       <div className="space-y-3 h-full">
         <div className="grid grid-cols-2 gap-3 text-center">
           <div>
@@ -191,63 +234,27 @@ const initialCards: DashboardCard[] = [
           </div>
         </div>
       </div>
-    )
-  },
-  {
-    id: "network-speed",
-    title: "Network Speed",
-    description: "Real-time upload & download monitoring",
-    size: "2x2",
-    icon: <Wifi className="h-5 w-5" />,
-    content: <NetworkSpeedMonitor />
-  }
-];
-
-// Card prefabs for the sidebar
-const cardPrefabs: Omit<DashboardCard, 'id'>[] = [
-  {
-    title: "World Clock",
-    description: "Time in different locations",
-    size: "2x2",
-    icon: <Clock className="h-5 w-5" />,
-    content: <WorldClock />
-  },
-  {
-    title: "Network Speed",
-    description: "Real-time upload & download monitoring",
-    size: "2x2",
-    icon: <Wifi className="h-5 w-5" />,
-    content: <NetworkSpeedMonitor />
-  },
-  {
-    title: "Analytics",
-    description: "Key metrics and KPIs",
-    size: "2x2",
-    icon: <BarChart3 className="h-5 w-5" />,
-    content: (
+      );
+    case "data-insights":
+      return (
       <div className="space-y-3 h-full">
-        <div className="grid grid-cols-2 gap-3">
-          <div className="text-center">
-            <div className="text-xl font-bold text-primary-enhanced">1,247</div>
-            <div className="text-xs text-muted-foreground">Records</div>
+          <div className="grid grid-cols-2 gap-3 text-center">
+            <div>
+              <div className="text-lg font-bold text-purple-400">87%</div>
+              <div className="text-xs text-muted-foreground">Accuracy</div>
+            </div>
+            <div>
+              <div className="text-lg font-bold text-cyan-400">342</div>
+              <div className="text-xs text-muted-foreground">Insights</div>
+            </div>
           </div>
-          <div className="text-center">
-            <div className="text-xl font-bold text-green-400">98.5%</div>
-            <div className="text-xs text-muted-foreground">Uptime</div>
+          <div className="flex-1 bg-gradient-to-br from-purple-500/20 via-cyan-500/20 to-transparent rounded-md flex items-center justify-center min-h-[80px]">
+            <span className="text-muted-foreground text-sm">🧠 AI Analysis</span>
           </div>
         </div>
-        <div className="flex-1 bg-gradient-to-r from-primary/20 to-primary/5 rounded-md flex items-center justify-center min-h-[80px]">
-          <span className="text-muted-foreground text-sm">📊 Chart</span>
-        </div>
-      </div>
-    )
-  },
-  {
-    title: "Storage",
-    description: "Usage and capacity",
-    size: "2x1",
-    icon: <Database className="h-5 w-5" />,
-    content: (
+      );
+    case "storage":
+      return (
       <div className="space-y-2 h-full flex flex-col justify-center">
         <div className="flex justify-between items-center">
           <span className="text-xs">Used</span>
@@ -258,36 +265,42 @@ const cardPrefabs: Omit<DashboardCard, 'id'>[] = [
         </div>
         <div className="text-xs text-muted-foreground">65% of 4 GB used</div>
       </div>
-    )
-  },
-  {
-    title: "System Status",
-    description: "Health monitoring",
-    size: "2x1",
-    icon: <Settings className="h-5 w-5" />,
-    content: (
-      <div className="space-y-2 h-full flex flex-col justify-center">
-        <div className="flex items-center justify-between">
-          <span className="text-xs">Status</span>
-          <div className="flex items-center gap-1">
-            <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
-            <span className="text-xs font-semibold text-green-400">Online</span>
+      );
+    case "system-status":
+      return (
+        <div className="space-y-3 h-full">
+          <div className="grid grid-cols-2 gap-3">
+            <div className="text-center">
+              <div className="text-lg font-bold text-green-400">Online</div>
+              <div className="text-xs text-muted-foreground">Status</div>
+            </div>
+            <div className="text-center">
+              <div className="text-lg font-bold text-blue-400">15ms</div>
+              <div className="text-xs text-muted-foreground">Latency</div>
+            </div>
           </div>
-        </div>
-        <div className="space-y-1">
+          <div className="space-y-2">
           <div className="flex justify-between text-xs">
-            <span>CPU</span>
+              <span>CPU Usage</span>
             <span>23%</span>
+          </div>
+            <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-1">
+              <div className="bg-green-500 h-1 rounded-full" style={{ width: '23%' }}></div>
           </div>
           <div className="flex justify-between text-xs">
             <span>Memory</span>
             <span>67%</span>
+            </div>
+            <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-1">
+              <div className="bg-orange-500 h-1 rounded-full" style={{ width: '67%' }}></div>
+            </div>
           </div>
         </div>
-      </div>
-    )
+      );
+    default:
+      return <div className="text-center text-muted-foreground">Unknown content type</div>;
   }
-];
+};
 
 export function DataDashboard() {
   const { isAuthenticated, getData, setData } = useUserData();
@@ -490,7 +503,7 @@ export function DataDashboard() {
                 )}
               >
                 <div className="flex items-center gap-2 mb-1">
-                  {prefab.icon}
+                  {renderIcon(prefab.icon)}
                   <span className="text-sm font-medium text-primary-enhanced">{prefab.title}</span>
                 </div>
                 <div className="text-xs text-secondary-enhanced">{prefab.description}</div>
@@ -528,7 +541,7 @@ export function DataDashboard() {
                 className="p-3 rounded-lg border border-white/20 hover:bg-white/10 transition-colors text-left"
               >
                 <div className="flex items-center gap-2 mb-1">
-                  {prefab.icon}
+                  {renderIcon(prefab.icon)}
                   <span className="text-sm font-medium">{prefab.title}</span>
                 </div>
                 <p className="text-xs text-muted-foreground">{prefab.description}</p>
@@ -574,7 +587,7 @@ export function DataDashboard() {
             )}>
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
-                  {card.icon}
+                {renderIcon(card.icon)}
                   <CardTitle className={cn(
                     "text-modern text-primary-enhanced",
                     card.size === "2x1" ? "text-sm" : "text-lg"
@@ -624,7 +637,7 @@ export function DataDashboard() {
               "flex-1 flex flex-col justify-center",
               card.size === "2x1" ? "p-3 pt-0" : "p-4 pt-0"
             )}>
-              {card.content}
+              {renderContent(card.contentType)}
             </CardContent>
             
             {/* Drag indicator */}
