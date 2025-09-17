@@ -75,26 +75,69 @@ export function WorldClock({ className }: WorldClockProps) {
       
       const data = await response.json();
       
-      // Get timezone for each location using TimeZoneDB or similar service
+      // Get timezone for each location using a more reliable method
       const locationsWithTimezone = await Promise.all(
         data.slice(0, 5).map(async (item: any) => {
           const lat = parseFloat(item.lat);
           const lon = parseFloat(item.lon);
           
-          // Get timezone using a free timezone API
+          // Use a more reliable timezone detection service
           let timezone = 'UTC';
           try {
+            // Try using the WorldTimeAPI which is free and reliable
             const tzResponse = await fetch(
-              `https://api.timezonedb.com/v2.1/get-time-zone?key=demo&format=json&by=position&lat=${lat}&lng=${lon}`
+              `https://worldtimeapi.org/api/timezone`
             );
             if (tzResponse.ok) {
-              const tzData = await tzResponse.json();
-              timezone = tzData.zoneName || 'UTC';
+              const allTimezones = await tzResponse.json();
+              // Find the best matching timezone based on location
+              // This is a simplified approach - in production you'd want more sophisticated matching
+              const address = item.address || {};
+              const country = address.country;
+              
+              if (country) {
+                // Try to find timezone by country
+                const countryTimezones = allTimezones.filter((tz: string) => 
+                  tz.includes(country.toLowerCase()) || 
+                  tz.includes(country.split(' ')[0].toLowerCase())
+                );
+                if (countryTimezones.length > 0) {
+                  timezone = countryTimezones[0];
+                }
+              }
+              
+              // If no country match, try to estimate from coordinates
+              if (timezone === 'UTC') {
+                // More accurate timezone estimation based on common timezone boundaries
+                if (lon >= -180 && lon < -165) timezone = 'Pacific/Midway';
+                else if (lon >= -165 && lon < -150) timezone = 'Pacific/Honolulu';
+                else if (lon >= -150 && lon < -135) timezone = 'America/Anchorage';
+                else if (lon >= -135 && lon < -120) timezone = 'America/Los_Angeles';
+                else if (lon >= -120 && lon < -105) timezone = 'America/Denver';
+                else if (lon >= -105 && lon < -90) timezone = 'America/Chicago';
+                else if (lon >= -90 && lon < -75) timezone = 'America/New_York';
+                else if (lon >= -75 && lon < -60) timezone = 'America/Caracas';
+                else if (lon >= -60 && lon < -45) timezone = 'America/Argentina/Buenos_Aires';
+                else if (lon >= -45 && lon < -30) timezone = 'Atlantic/South_Georgia';
+                else if (lon >= -30 && lon < -15) timezone = 'Atlantic/Azores';
+                else if (lon >= -15 && lon < 0) timezone = 'Europe/London';
+                else if (lon >= 0 && lon < 15) timezone = 'Europe/Paris';
+                else if (lon >= 15 && lon < 30) timezone = 'Europe/Athens';
+                else if (lon >= 30 && lon < 45) timezone = 'Europe/Moscow';
+                else if (lon >= 45 && lon < 60) timezone = 'Asia/Dubai';
+                else if (lon >= 60 && lon < 75) timezone = 'Asia/Karachi';
+                else if (lon >= 75 && lon < 90) timezone = 'Asia/Kolkata';
+                else if (lon >= 90 && lon < 105) timezone = 'Asia/Bangkok';
+                else if (lon >= 105 && lon < 120) timezone = 'Asia/Shanghai';
+                else if (lon >= 120 && lon < 135) timezone = 'Asia/Tokyo';
+                else if (lon >= 135 && lon < 150) timezone = 'Australia/Adelaide';
+                else if (lon >= 150 && lon < 165) timezone = 'Australia/Sydney';
+                else if (lon >= 165 && lon < 180) timezone = 'Pacific/Auckland';
+              }
             }
           } catch (error) {
-            // Fallback to estimating timezone from longitude
-            const estimatedOffset = Math.round(lon / 15);
-            timezone = `UTC${estimatedOffset >= 0 ? '+' : ''}${estimatedOffset}`;
+            console.warn('Timezone detection failed, using UTC:', error);
+            timezone = 'UTC';
           }
           
           const address = item.address || {};
@@ -150,12 +193,17 @@ export function WorldClock({ className }: WorldClockProps) {
   // Get time in selected timezone
   const getLocalTime = (): Date => {
     try {
-      // For demo purposes, we'll calculate offset from UTC
+      // Use proper timezone conversion that handles DST automatically
       if (selectedLocation.timezone === 'UTC') {
-        return currentTime;
+        return new Date(currentTime.toLocaleString("en-US", { timeZone: "UTC" }));
       }
       
-      // Extract offset from timezone string (e.g., "UTC+5" or "UTC-3")
+      // For proper timezone names (like "America/New_York"), use toLocaleString with timeZone
+      if (selectedLocation.timezone.includes('/')) {
+        return new Date(currentTime.toLocaleString("en-US", { timeZone: selectedLocation.timezone }));
+      }
+      
+      // Fallback for UTC offset strings (e.g., "UTC+5" or "UTC-3")
       const offsetMatch = selectedLocation.timezone.match(/UTC([+-]\d+)/);
       if (offsetMatch) {
         const offset = parseInt(offsetMatch[1]);
@@ -163,9 +211,10 @@ export function WorldClock({ className }: WorldClockProps) {
         return localTime;
       }
       
-      // Fallback to UTC
-      return currentTime;
+      // Final fallback to UTC
+      return new Date(currentTime.toLocaleString("en-US", { timeZone: "UTC" }));
     } catch (error) {
+      console.warn('Timezone conversion failed:', error);
       return currentTime;
     }
   };
@@ -310,8 +359,7 @@ export function WorldClock({ className }: WorldClockProps) {
       <div className="text-center">
         <div className="font-mono text-sm text-primary-enhanced">
           {localTime.toLocaleTimeString('en-US', { 
-            hour12: false,
-            timeZone: selectedLocation.timezone === 'UTC' ? 'UTC' : undefined
+            hour12: false
           })}
         </div>
         <div className="text-xs text-muted-foreground">
