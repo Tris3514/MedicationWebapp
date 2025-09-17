@@ -18,14 +18,12 @@ import {
   Clock
 } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { useUserData } from "@/hooks/useUserData";
 
 const STORAGE_KEY = "flight-radar-settings";
 const FLIGHT_COUNT_KEY = "flight-radar-total-count";
 const TRACKED_IDS_KEY = "flight-radar-tracked-ids";
 
 export function FlightRadar() {
-  const { isAuthenticated, getData, setData, setDataImmediate, userData } = useUserData();
   const [userLocation, setUserLocation] = useState<UserLocation | null>(null);
   const [flights, setFlights] = useState<FlightData[]>([]);
   const [nearestFlight, setNearestFlight] = useState<FlightData | null>(null);
@@ -55,53 +53,6 @@ export function FlightRadar() {
     return R * c;
   }, []);
 
-  // Generate fallback flight data when API is unavailable
-  const generateFallbackFlightData = useCallback((userLat: number, userLon: number): FlightData[] => {
-    const fallbackFlights: FlightData[] = [
-      {
-        id: 'fallback-1',
-        callsign: 'BAW123',
-        airline: 'British Airways',
-        aircraft: 'Boeing 777-300ER',
-        registration: 'G-STBH',
-        registrationCompany: 'British Airways',
-        origin: 'LHR',
-        destination: 'JFK',
-        lat: userLat + 0.01,
-        lon: userLon + 0.01,
-        altitude: 35000,
-        speed: 450,
-        heading: 270,
-        verticalRate: 0,
-        squawk: '1234',
-        onGround: false,
-        lastUpdate: new Date(),
-        distance: calculateDistance(userLat, userLon, userLat + 0.01, userLon + 0.01)
-      },
-      {
-        id: 'fallback-2',
-        callsign: 'AF456',
-        airline: 'Air France',
-        aircraft: 'Airbus A350-900',
-        registration: 'F-HREB',
-        registrationCompany: 'Air France',
-        origin: 'CDG',
-        destination: 'LAX',
-        lat: userLat - 0.02,
-        lon: userLon + 0.015,
-        altitude: 38000,
-        speed: 480,
-        heading: 285,
-        verticalRate: 500,
-        squawk: '5678',
-        onGround: false,
-        lastUpdate: new Date(),
-        distance: calculateDistance(userLat, userLon, userLat - 0.02, userLon + 0.015)
-      }
-    ];
-    
-    return fallbackFlights;
-  }, [calculateDistance]);
 
   // Fetch real flight data from OpenSky Network API
   const fetchRealFlightData = useCallback(async (userLat: number, userLon: number): Promise<FlightData[]> => {
@@ -142,8 +93,8 @@ export function FlightRadar() {
       
       // Check if the response contains an error message
       if (typeof proxyData.contents === 'string' && proxyData.contents.includes('Too many requests')) {
-        console.warn('API rate limit exceeded, using fallback data');
-        return generateFallbackFlightData(userLat, userLon);
+        console.warn('API rate limit exceeded, returning empty data');
+        return [];
       }
       
       // Parse the actual API response from the proxy
@@ -153,7 +104,7 @@ export function FlightRadar() {
       } catch (parseError) {
         console.error('Failed to parse API response:', parseError);
         console.log('Raw response:', proxyData.contents);
-        return generateFallbackFlightData(userLat, userLon);
+        return [];
       }
       console.log('API Response data:', data);
       
@@ -441,14 +392,9 @@ export function FlightRadar() {
         const updatedTrackedIds = new Set([...Array.from(trackedFlightIds), ...newFlights]);
         setTrackedFlightIds(updatedTrackedIds);
         
-        // Save to user-specific data if authenticated, otherwise fallback to localStorage
-        if (isAuthenticated) {
-          setDataImmediate('flightCount', newTotal);
-          setDataImmediate('trackedFlightIds', Array.from(updatedTrackedIds));
-        } else {
-          localStorage.setItem(FLIGHT_COUNT_KEY, newTotal.toString());
-          localStorage.setItem(TRACKED_IDS_KEY, JSON.stringify(Array.from(updatedTrackedIds)));
-        }
+        // Save to localStorage
+        localStorage.setItem(FLIGHT_COUNT_KEY, newTotal.toString());
+        localStorage.setItem(TRACKED_IDS_KEY, JSON.stringify(Array.from(updatedTrackedIds)));
       }
       
       // Find nearest airborne aircraft (not on ground)
@@ -463,34 +409,25 @@ export function FlightRadar() {
     } finally {
       setLoading(false);
     }
-  }, [userLocation, fetchRealFlightData, lastApiCall, totalFlightsTracked, trackedFlightIds, isAuthenticated, setData, setDataImmediate]);
+  }, [userLocation, fetchRealFlightData, lastApiCall, totalFlightsTracked, trackedFlightIds]);
 
   // Load persisted flight count and tracked IDs when user data is available
   useEffect(() => {
-    if (isAuthenticated && userData) {
-      // Load from user-specific data
-      const flightCount = getData('flightCount') || 0;
-      const trackedIds = getData('trackedFlightIds') || [];
-      setTotalFlightsTracked(flightCount);
-      setTrackedFlightIds(new Set(trackedIds));
-    } else if (!isAuthenticated) {
-      // Fallback to localStorage for non-authenticated users
-      const savedCount = localStorage.getItem(FLIGHT_COUNT_KEY);
-      if (savedCount) {
-        setTotalFlightsTracked(parseInt(savedCount, 10));
-      }
-      
-      const savedIds = localStorage.getItem(TRACKED_IDS_KEY);
-      if (savedIds) {
-        try {
-          const idsArray = JSON.parse(savedIds);
-          setTrackedFlightIds(new Set(idsArray));
-        } catch (error) {
-          console.error('Failed to parse tracked flight IDs:', error);
-        }
+    const savedCount = localStorage.getItem(FLIGHT_COUNT_KEY);
+    if (savedCount) {
+      setTotalFlightsTracked(parseInt(savedCount, 10));
+    }
+    
+    const savedIds = localStorage.getItem(TRACKED_IDS_KEY);
+    if (savedIds) {
+      try {
+        const idsArray = JSON.parse(savedIds);
+        setTrackedFlightIds(new Set(idsArray));
+      } catch (error) {
+        console.error('Failed to parse tracked flight IDs:', error);
       }
     }
-  }, [isAuthenticated, userData, getData]);
+  }, []);
 
   // Initial location fetch
   useEffect(() => {
@@ -537,14 +474,9 @@ export function FlightRadar() {
     setTotalFlightsTracked(0);
     setTrackedFlightIds(new Set());
     
-    // Save to user-specific data if authenticated, otherwise fallback to localStorage
-    if (isAuthenticated) {
-      setDataImmediate('flightCount', 0);
-      setDataImmediate('trackedFlightIds', []);
-    } else {
-      localStorage.setItem(FLIGHT_COUNT_KEY, '0');
-      localStorage.setItem(TRACKED_IDS_KEY, JSON.stringify([]));
-    }
+    // Save to localStorage
+    localStorage.setItem(FLIGHT_COUNT_KEY, '0');
+    localStorage.setItem(TRACKED_IDS_KEY, JSON.stringify([]));
   };
 
   return (

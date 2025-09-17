@@ -29,17 +29,30 @@ export function AuthProvider({ children }: AuthProviderProps) {
 
   // Check for existing session on mount
   useEffect(() => {
-    const checkAuth = () => {
+    const checkAuth = async () => {
       try {
-        const userData = localStorage.getItem('user_data');
-        if (userData) {
-          const user = JSON.parse(userData);
-          setAuthState({
-            user,
-            isAuthenticated: true,
-            isLoading: false,
-            error: null,
-          });
+        const token = localStorage.getItem('auth_token');
+        if (token) {
+          // For now, we'll use localStorage as fallback
+          // In production, verify token with server
+          const userData = localStorage.getItem('user_data');
+          if (userData) {
+            const user = JSON.parse(userData);
+            setAuthState({
+              user,
+              isAuthenticated: true,
+              isLoading: false,
+              error: null,
+            });
+          } else {
+            localStorage.removeItem('auth_token');
+            setAuthState({
+              user: null,
+              isAuthenticated: false,
+              isLoading: false,
+              error: null,
+            });
+          }
         } else {
           setAuthState({
             user: null,
@@ -51,6 +64,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
       } catch (error) {
         console.error('Auth check failed:', error);
         localStorage.removeItem('user_data');
+        localStorage.removeItem('auth_token');
         setAuthState({
           user: null,
           isAuthenticated: false,

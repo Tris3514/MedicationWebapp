@@ -17,17 +17,15 @@ import {
 } from "@/components/ui/dialog";
 import { Plus, MapPin, Thermometer, Droplets, Wind, Eye, Gauge, Sun, Trash2, Search, Cloud } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { useUserData } from "@/hooks/useUserData";
 
 const STORAGE_KEY = "weather-tracker-data";
-const WEATHER_API_KEY = "demo"; // Using demo data for now
+const WEATHER_API_KEY = ""; // Add your OpenWeatherMap API key here
 
 interface WeatherTrackerProps {
   isActive?: boolean;
 }
 
 export function WeatherTracker({ isActive = false }: WeatherTrackerProps = {}) {
-  const { isAuthenticated, getData, setData, userData } = useUserData();
   const [locations, setLocations] = useState<WeatherLocation[]>([]);
   const [weatherData, setWeatherData] = useState<{ [key: string]: WeatherData }>({});
   const [activeLocationId, setActiveLocationId] = useState<string | null>(null);
@@ -38,42 +36,28 @@ export function WeatherTracker({ isActive = false }: WeatherTrackerProps = {}) {
   const [isSearching, setIsSearching] = useState(false);
   const [showSuggestions, setShowSuggestions] = useState(false);
 
-  // Load data when user data is available
+  // Load data on component mount
   useEffect(() => {
-    if (isAuthenticated && userData) {
-      // Load from user-specific data
-      const weatherLocations = getData('weatherLocations') || [];
-      setLocations(weatherLocations);
-      if (weatherLocations.length > 0) {
-        setActiveLocationId(weatherLocations[0].id);
-      }
-    } else if (!isAuthenticated) {
-      // Fallback to localStorage for non-authenticated users
-      const savedData = localStorage.getItem(STORAGE_KEY);
-      if (savedData) {
-        try {
-          const parsed = JSON.parse(savedData);
-          setLocations(parsed.locations || []);
-          if (parsed.locations && parsed.locations.length > 0) {
-            setActiveLocationId(parsed.locations[0].id);
-          }
-        } catch (error) {
-          console.error("Failed to load weather data from storage:", error);
+    const savedData = localStorage.getItem(STORAGE_KEY);
+    if (savedData) {
+      try {
+        const parsed = JSON.parse(savedData);
+        setLocations(parsed.locations || []);
+        if (parsed.locations && parsed.locations.length > 0) {
+          setActiveLocationId(parsed.locations[0].id);
         }
+      } catch (error) {
+        console.error("Failed to load weather data from storage:", error);
       }
     }
-  }, [isAuthenticated, userData, getData]);
+  }, []);
 
-  // Save data immediately whenever locations change
+  // Save data whenever locations change
   useEffect(() => {
-    if (locations.length > 0 && isAuthenticated && userData) {
-      // Save to user-specific data immediately
-      setData('weatherLocations', locations);
-    } else if (locations.length > 0 && !isAuthenticated) {
-      // Fallback to localStorage for non-authenticated users
+    if (locations.length > 0) {
       localStorage.setItem(STORAGE_KEY, JSON.stringify({ locations }));
     }
-  }, [locations, isAuthenticated, userData, setData]);
+  }, [locations]);
 
   const fetchWeatherData = useCallback(async (location: WeatherLocation) => {
     setLoading(prev => ({ ...prev, [location.id]: true }));
@@ -223,9 +207,9 @@ export function WeatherTracker({ isActive = false }: WeatherTrackerProps = {}) {
     try {
       // Using OpenWeatherMap One Call API 3.0 (free tier)
       // Note: You'll need to sign up for a free API key at openweathermap.org
-      const API_KEY = 'demo'; // Replace with your actual API key
+      const API_KEY = WEATHER_API_KEY;
       
-      // For demo purposes, we'll use a free weather service
+      // Using Open-Meteo free weather service
       const response = await fetch(
         `https://api.open-meteo.com/v1/forecast?latitude=${location.lat}&longitude=${location.lon}&current=temperature_2m,relative_humidity_2m,apparent_temperature,precipitation,weather_code,surface_pressure,wind_speed_10m,wind_direction_10m&daily=weather_code,temperature_2m_max,temperature_2m_min,precipitation_probability_max&timezone=auto&forecast_days=7`
       );

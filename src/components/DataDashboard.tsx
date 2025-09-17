@@ -23,7 +23,6 @@ import { BarChart3, PieChart, TrendingUp, Database, Settings, GripVertical, More
 import { cn } from "@/lib/utils";
 import { WorldClock } from "@/components/WorldClock";
 import { NetworkSpeedMonitor } from "@/components/NetworkSpeedMonitor";
-import { useUserData } from "@/hooks/useUserData";
 
 export type CardSize = "2x1" | "2x2";
 
@@ -302,8 +301,9 @@ const renderContent = (contentType: ContentType) => {
   }
 };
 
+const STORAGE_KEY = "dashboard-cards";
+
 export function DataDashboard() {
-  const { isAuthenticated, getData, setData, user, userData } = useUserData();
   const [cards, setCards] = useState<DashboardCard[]>(initialCards);
   const [draggedCard, setDraggedCard] = useState<string | null>(null);
   const [dragOverIndex, setDragOverIndex] = useState<number | null>(null);
@@ -312,42 +312,27 @@ export function DataDashboard() {
   const [showPrefabsSidebar, setShowPrefabsSidebar] = useState(false);
   const [draggedPrefab, setDraggedPrefab] = useState<number | null>(null);
 
-  // Load saved dashboard cards when user data is available
+  // Load saved dashboard cards on component mount
   useEffect(() => {
-    if (isAuthenticated && userData) {
-      const savedCards = getData('dashboardCards') || [];
-      if (savedCards.length > 0) {
-        console.log('Loading saved dashboard cards:', savedCards);
-        setCards(savedCards);
-      } else {
-        console.log('No saved dashboard cards found, using initial cards');
-      }
-    } else if (!isAuthenticated) {
-      // Fallback to localStorage for non-authenticated users
-      const savedData = localStorage.getItem('data-dashboard-cards');
-      if (savedData) {
-        try {
-          const parsedCards = JSON.parse(savedData);
-          console.log('Loading dashboard cards from localStorage:', parsedCards);
-          setCards(parsedCards);
-        } catch (error) {
-          console.error("Failed to load dashboard cards from storage:", error);
-        }
+    const savedData = localStorage.getItem(STORAGE_KEY);
+    if (savedData) {
+      try {
+        const parsedCards = JSON.parse(savedData);
+        console.log('Loading dashboard cards from localStorage:', parsedCards);
+        setCards(parsedCards);
+      } catch (error) {
+        console.error("Failed to load dashboard cards from storage:", error);
       }
     }
-  }, [isAuthenticated, userData, getData]);
+  }, []);
 
-  // Save dashboard cards whenever they change (immediate saving)
+  // Save dashboard cards whenever they change
   useEffect(() => {
-    if (cards.length > 0 && isAuthenticated && userData) {
-      console.log('Saving dashboard cards to user data:', cards);
-      setData('dashboardCards', cards);
-    } else if (cards.length > 0 && !isAuthenticated) {
-      // Fallback to localStorage for non-authenticated users
+    if (cards.length > 0) {
       console.log('Saving dashboard cards to localStorage:', cards);
-      localStorage.setItem('data-dashboard-cards', JSON.stringify(cards));
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(cards));
     }
-  }, [cards, isAuthenticated, userData, setData]);
+  }, [cards]);
 
   const generateId = () => {
     return Date.now().toString() + Math.random().toString(36).substr(2, 9);
@@ -417,6 +402,7 @@ export function DataDashboard() {
 
   const handleDragOver = (e: React.DragEvent, index?: number) => {
     e.preventDefault();
+    e.stopPropagation();
     e.dataTransfer.dropEffect = draggedPrefab !== null ? "copy" : "move";
     setDragOverIndex(index ?? -1);
   };
@@ -427,6 +413,7 @@ export function DataDashboard() {
 
   const handleDrop = (e: React.DragEvent, dropIndex?: number) => {
     e.preventDefault();
+    e.stopPropagation();
     
     // Handle prefab drop
     if (draggedPrefab !== null) {
@@ -442,18 +429,29 @@ export function DataDashboard() {
     const dragIndex = cards.findIndex(card => card.id === draggedCard);
     if (dragIndex === -1) return;
 
+    // Don't do anything if dropping on the same position
+    if (dragIndex === dropIndex) {
+      setDraggedCard(null);
+      setDragOverIndex(null);
+      return;
+    }
+
     const newCards = [...cards];
     const draggedItem = newCards[dragIndex];
     
     // Remove the dragged item
     newCards.splice(dragIndex, 1);
     
-    // Insert at new position (or at end if dropIndex is undefined)
-    if (dropIndex !== undefined) {
-      newCards.splice(dropIndex, 0, draggedItem);
-    } else {
-      newCards.push(draggedItem);
+    // Calculate the correct insertion index
+    let insertIndex = dropIndex;
+    if (insertIndex === undefined) {
+      insertIndex = newCards.length;
+    } else if (insertIndex > dragIndex) {
+      insertIndex = insertIndex - 1; // Adjust for the removed item
     }
+    
+    // Insert at new position
+    newCards.splice(insertIndex, 0, draggedItem);
     
     setCards(newCards);
     setDraggedCard(null);

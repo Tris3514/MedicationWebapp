@@ -7,60 +7,41 @@ import { MedicationTable } from "@/components/MedicationTable";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { RotateCcw } from "lucide-react";
-import { useUserData } from "@/hooks/useUserData";
-
 const STORAGE_KEY = "medication-tracker-data";
 
 export function MedicationTracker() {
-  const { isAuthenticated, getData, setData, setDataImmediate, userData } = useUserData();
   const [medications, setMedications] = useState<Medication[]>([]);
 
-  // Load data when user data is available
+  // Load data on component mount
   useEffect(() => {
-    if (isAuthenticated && userData) {
-      // Load from user-specific data
-      const savedData = getData('medications') || [];
-      // Convert date strings back to Date objects
-      const medicationsWithDates = savedData.map((med: any) => ({
-        ...med,
-        lastTaken: med.lastTaken ? new Date(med.lastTaken) : undefined,
-      }));
-      setMedications(medicationsWithDates);
-    } else if (!isAuthenticated) {
-      // Fallback to localStorage for non-authenticated users
-      const savedData = localStorage.getItem(STORAGE_KEY);
-      if (savedData) {
-        try {
-          const parsedData = JSON.parse(savedData);
-          // Convert date strings back to Date objects
-          const medicationsWithDates = parsedData.map((med: any) => ({
-            ...med,
-            lastTaken: med.lastTaken ? new Date(med.lastTaken) : undefined,
-          }));
-          setMedications(medicationsWithDates);
-        } catch (error) {
-          console.error("Failed to load medications from storage:", error);
-        }
+    const savedData = localStorage.getItem(STORAGE_KEY);
+    if (savedData) {
+      try {
+        const parsedData = JSON.parse(savedData);
+        // Convert date strings back to Date objects
+        const medicationsWithDates = parsedData.map((med: any) => ({
+          ...med,
+          lastTaken: med.lastTaken ? new Date(med.lastTaken) : undefined,
+        }));
+        setMedications(medicationsWithDates);
+      } catch (error) {
+        console.error("Failed to load medications from storage:", error);
       }
     }
-  }, [isAuthenticated, userData, getData]);
+  }, []);
 
-  // Save data immediately whenever medications change
+  // Save data whenever medications change
   useEffect(() => {
-    if (medications.length > 0 && isAuthenticated && userData) {
-      // Save to user-specific data immediately
-      setData('medications', medications);
-    } else if (medications.length > 0 && !isAuthenticated) {
-      // Fallback to localStorage for non-authenticated users
+    if (medications.length > 0) {
       localStorage.setItem(STORAGE_KEY, JSON.stringify(medications));
     }
-  }, [medications, isAuthenticated, userData, setData]);
+  }, [medications]);
 
-  // Check if it's a new day and reset "taken today" status
+  // Check if it's a new day and reset "taken today" status (only once per day)
   useEffect(() => {
     const checkNewDay = () => {
       const today = new Date().toDateString();
-      const lastCheck = isAuthenticated ? getData('lastCheckDate') : localStorage.getItem("last-check-date");
+      const lastCheck = localStorage.getItem("last-check-date");
       
       if (lastCheck !== today) {
         setMedications(prev => 
@@ -70,20 +51,13 @@ export function MedicationTracker() {
           }))
         );
         
-        // Save to user-specific data if authenticated, otherwise fallback to localStorage
-        if (isAuthenticated) {
-          setData('lastCheckDate', today);
-        } else {
-          localStorage.setItem("last-check-date", today);
-        }
+        localStorage.setItem("last-check-date", today);
       }
     };
 
+    // Only check once on mount, not repeatedly
     checkNewDay();
-    // Check every minute if it's a new day
-    const interval = setInterval(checkNewDay, 60000);
-    return () => clearInterval(interval);
-  }, [isAuthenticated, getData, setData]);
+  }, []);
 
   const generateId = () => {
     return Date.now().toString() + Math.random().toString(36).substr(2, 9);
@@ -119,11 +93,6 @@ export function MedicationTracker() {
         }
         return med;
       });
-      
-      // Save immediately for critical medication tracking
-      if (isAuthenticated) {
-        setDataImmediate('medications', updated);
-      }
       
       return updated;
     });

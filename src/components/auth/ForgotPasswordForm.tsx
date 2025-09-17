@@ -86,8 +86,8 @@ export function ForgotPasswordForm({ onBackToLogin, onSuccess }: ForgotPasswordF
           <div className="text-sm text-muted-foreground text-center space-y-2">
             <p>Click the link in the email to reset your password.</p>
             <p className="text-xs">
-              <strong>Demo Note:</strong> In a real app, you would receive an actual email. 
-              For this demo, you can use this reset link:
+              <strong>Note:</strong> In a real app, you would receive an actual email. 
+              For development purposes, you can use this reset link:
             </p>
             <div className="mt-3 p-2 bg-muted rounded text-xs break-all">
               <p className="text-primary-enhanced">

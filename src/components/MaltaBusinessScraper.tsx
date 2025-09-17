@@ -32,7 +32,6 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { getRandomMaltaSMEs } from "@/data/maltaSMEDatabase";
-import { useUserData } from "@/hooks/useUserData";
 
 const STORAGE_KEY = "malta-business-data";
 const SAVED_BUSINESSES_KEY = "malta-saved-businesses";
@@ -56,7 +55,6 @@ const businessCategories = [
 ];
 
 export function MaltaBusinessScraper() {
-  const { isAuthenticated, getData, setData, userData } = useUserData();
   const [businesses, setBusinesses] = useState<Business[]>([]);
   const [filteredBusinesses, setFilteredBusinesses] = useState<Business[]>([]);
   const [savedBusinesses, setSavedBusinesses] = useState<Business[]>([]);
@@ -79,66 +77,41 @@ export function MaltaBusinessScraper() {
   // Load saved and blacklisted businesses from localStorage
   useEffect(() => {
     try {
-      if (isAuthenticated && userData) {
-        // Load from user-specific data
-        const savedData = getData('savedBusinesses') || [];
-        const blacklistedData = getData('blacklistedBusinesses') || [];
-        
-        setSavedBusinesses(savedData.map((b: any) => ({
+      const savedData = localStorage.getItem(SAVED_BUSINESSES_KEY);
+      if (savedData) {
+        const parsed = JSON.parse(savedData);
+        setSavedBusinesses(parsed.map((b: any) => ({
           ...b,
           lastUpdated: new Date(b.lastUpdated)
         })));
-        
-        setBlacklistedBusinesses(blacklistedData.map((b: any) => ({
-          ...b,
-          lastUpdated: new Date(b.lastUpdated)
-        })));
-      } else if (!isAuthenticated) {
-        // Fallback to localStorage for non-authenticated users
-        const savedData = localStorage.getItem(SAVED_BUSINESSES_KEY);
-        if (savedData) {
-          const parsed = JSON.parse(savedData);
-          setSavedBusinesses(parsed.map((b: any) => ({
-            ...b,
-            lastUpdated: new Date(b.lastUpdated)
-          })));
-        }
+      }
 
-        const blacklistedData = localStorage.getItem(BLACKLISTED_BUSINESSES_KEY);
-        if (blacklistedData) {
-          const parsed = JSON.parse(blacklistedData);
-          setBlacklistedBusinesses(parsed.map((b: any) => ({
-            ...b,
-            lastUpdated: new Date(b.lastUpdated)
-          })));
-        }
+      const blacklistedData = localStorage.getItem(BLACKLISTED_BUSINESSES_KEY);
+      if (blacklistedData) {
+        const parsed = JSON.parse(blacklistedData);
+        setBlacklistedBusinesses(parsed.map((b: any) => ({
+          ...b,
+          lastUpdated: new Date(b.lastUpdated)
+        })));
       }
     } catch (error) {
       console.error('Failed to load saved/blacklisted businesses:', error);
     }
-  }, [isAuthenticated, userData, getData]);
+  }, []);
 
   // Save immediately whenever saved businesses change
   useEffect(() => {
-    if (savedBusinesses.length > 0 && isAuthenticated && userData) {
-      // Save to user-specific data immediately
-      setData('savedBusinesses', savedBusinesses);
-    } else if (savedBusinesses.length > 0 && !isAuthenticated) {
-      // Fallback to localStorage for non-authenticated users
+    if (savedBusinesses.length > 0) {
       localStorage.setItem(SAVED_BUSINESSES_KEY, JSON.stringify(savedBusinesses));
     }
-  }, [savedBusinesses, isAuthenticated, userData, setData]);
+  }, [savedBusinesses]);
 
   // Save immediately whenever blacklisted businesses change
   useEffect(() => {
-    if (blacklistedBusinesses.length > 0 && isAuthenticated && userData) {
-      // Save to user-specific data immediately
-      setData('blacklistedBusinesses', blacklistedBusinesses);
-    } else if (blacklistedBusinesses.length > 0 && !isAuthenticated) {
-      // Fallback to localStorage for non-authenticated users
+    if (blacklistedBusinesses.length > 0) {
       localStorage.setItem(BLACKLISTED_BUSINESSES_KEY, JSON.stringify(blacklistedBusinesses));
     }
-  }, [blacklistedBusinesses, isAuthenticated, userData, setData]);
+  }, [blacklistedBusinesses]);
 
   // Scrape real Malta business data from multiple sources
   const scrapeRealMaltaBusinesses = useCallback(async (category: string = ""): Promise<Business[]> => {
@@ -211,7 +184,7 @@ export function MaltaBusinessScraper() {
     return [];
   };
 
-  // Curated real Malta business data as fallback
+  // Get real Malta business data from database
   const fetchCuratedMaltaBusinesses = async (category: string): Promise<Business[]> => {
     // Use comprehensive Malta SME database
     const selectedBusinesses = getRandomMaltaSMEs(category, 20);
