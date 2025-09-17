@@ -46,15 +46,11 @@ export function UserDataProvider({ children }: UserDataProviderProps) {
     }
   }, [isAuthenticated, user?.id]);
 
-  // Load data when authentication state changes
-  useEffect(() => {
-    if (isAuthenticated) {
-      loadUserData();
-    } else {
-      // Reset to defaults when user logs out
-      resetToDefaults();
-    }
-  }, [isAuthenticated, loadUserData, resetToDefaults]);
+  // Reset to default data (for logout)
+  const resetToDefaults = useCallback(() => {
+    console.log('Resetting user data to defaults');
+    setUserData(null);
+  }, []);
 
   // Update a single data field
   const updateData = useCallback(<K extends keyof UserData>(key: K, value: UserData[K]) => {
@@ -103,11 +99,15 @@ export function UserDataProvider({ children }: UserDataProviderProps) {
     saveUserDataImmediate(user.id, userData);
   }, [isAuthenticated, user?.id, userData]);
 
-  // Reset to default data (for logout)
-  const resetToDefaults = useCallback(() => {
-    console.log('Resetting user data to defaults');
-    setUserData(null);
-  }, []);
+  // Load data when authentication state changes
+  useEffect(() => {
+    if (isAuthenticated) {
+      loadUserData();
+    } else {
+      // Reset to defaults when user logs out
+      resetToDefaults();
+    }
+  }, [isAuthenticated, loadUserData, resetToDefaults]);
 
   const value: UserDataContextType = {
     userData,
