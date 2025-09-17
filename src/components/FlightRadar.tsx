@@ -493,7 +493,7 @@ export function FlightRadar() {
         };
         
         return flight;
-      })));
+      }));
       
       // Filter out flights without position data
       const validFlights = flights.filter((flight: FlightData) => 
