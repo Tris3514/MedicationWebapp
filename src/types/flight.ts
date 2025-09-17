@@ -7,6 +7,12 @@ export interface UserLocation {
   country?: string;
 }
 
+export interface AirportInfo {
+  name: string;
+  city: string;
+  country: string;
+}
+
 export interface FlightData {
   id: string;
   callsign: string;
@@ -16,6 +22,8 @@ export interface FlightData {
   registrationCompany: string;
   origin: string;
   destination: string;
+  originInfo?: AirportInfo;
+  destinationInfo?: AirportInfo;
   lat: number;
   lon: number;
   altitude: number; // in feet

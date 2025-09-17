@@ -229,10 +229,102 @@ export function FlightRadar() {
         const airlineInfo = getAirlineInfo(airlineCode, origin_country || 'Unknown');
         const aircraftType = getAircraftType(icao24.toUpperCase(), origin_country || 'Unknown');
         
+        // Comprehensive airport database with full names
+        const getAirportInfo = (iataCode: string): { name: string, city: string, country: string } => {
+          const airportDatabase: { [key: string]: { name: string, city: string, country: string } } = {
+            // United States
+            'JFK': { name: 'John F. Kennedy International Airport', city: 'New York', country: 'United States' },
+            'LAX': { name: 'Los Angeles International Airport', city: 'Los Angeles', country: 'United States' },
+            'ORD': { name: 'O\'Hare International Airport', city: 'Chicago', country: 'United States' },
+            'DFW': { name: 'Dallas/Fort Worth International Airport', city: 'Dallas', country: 'United States' },
+            'DEN': { name: 'Denver International Airport', city: 'Denver', country: 'United States' },
+            'SFO': { name: 'San Francisco International Airport', city: 'San Francisco', country: 'United States' },
+            'SEA': { name: 'Seattle-Tacoma International Airport', city: 'Seattle', country: 'United States' },
+            'LAS': { name: 'Harry Reid International Airport', city: 'Las Vegas', country: 'United States' },
+            'PHX': { name: 'Phoenix Sky Harbor International Airport', city: 'Phoenix', country: 'United States' },
+            'IAH': { name: 'George Bush Intercontinental Airport', city: 'Houston', country: 'United States' },
+            'MIA': { name: 'Miami International Airport', city: 'Miami', country: 'United States' },
+            'ATL': { name: 'Hartsfield-Jackson Atlanta International Airport', city: 'Atlanta', country: 'United States' },
+            'BOS': { name: 'Logan International Airport', city: 'Boston', country: 'United States' },
+            'MCO': { name: 'Orlando International Airport', city: 'Orlando', country: 'United States' },
+            
+            // United Kingdom
+            'LHR': { name: 'London Heathrow Airport', city: 'London', country: 'United Kingdom' },
+            'LGW': { name: 'London Gatwick Airport', city: 'London', country: 'United Kingdom' },
+            'MAN': { name: 'Manchester Airport', city: 'Manchester', country: 'United Kingdom' },
+            'EDI': { name: 'Edinburgh Airport', city: 'Edinburgh', country: 'United Kingdom' },
+            'BHX': { name: 'Birmingham Airport', city: 'Birmingham', country: 'United Kingdom' },
+            'STN': { name: 'London Stansted Airport', city: 'London', country: 'United Kingdom' },
+            'LTN': { name: 'London Luton Airport', city: 'London', country: 'United Kingdom' },
+            
+            // Germany
+            'FRA': { name: 'Frankfurt Airport', city: 'Frankfurt', country: 'Germany' },
+            'MUC': { name: 'Munich Airport', city: 'Munich', country: 'Germany' },
+            'DUS': { name: 'Düsseldorf Airport', city: 'Düsseldorf', country: 'Germany' },
+            'TXL': { name: 'Berlin Tegel Airport', city: 'Berlin', country: 'Germany' },
+            'HAM': { name: 'Hamburg Airport', city: 'Hamburg', country: 'Germany' },
+            'STR': { name: 'Stuttgart Airport', city: 'Stuttgart', country: 'Germany' },
+            
+            // France
+            'CDG': { name: 'Charles de Gaulle Airport', city: 'Paris', country: 'France' },
+            'ORY': { name: 'Orly Airport', city: 'Paris', country: 'France' },
+            'NCE': { name: 'Nice Côte d\'Azur Airport', city: 'Nice', country: 'France' },
+            'LYS': { name: 'Lyon-Saint Exupéry Airport', city: 'Lyon', country: 'France' },
+            'TLS': { name: 'Toulouse-Blagnac Airport', city: 'Toulouse', country: 'France' },
+            'BOD': { name: 'Bordeaux-Mérignac Airport', city: 'Bordeaux', country: 'France' },
+            
+            // Netherlands
+            'AMS': { name: 'Amsterdam Airport Schiphol', city: 'Amsterdam', country: 'Netherlands' },
+            'RTM': { name: 'Rotterdam The Hague Airport', city: 'Rotterdam', country: 'Netherlands' },
+            'EIN': { name: 'Eindhoven Airport', city: 'Eindhoven', country: 'Netherlands' },
+            
+            // Canada
+            'YYZ': { name: 'Toronto Pearson International Airport', city: 'Toronto', country: 'Canada' },
+            'YVR': { name: 'Vancouver International Airport', city: 'Vancouver', country: 'Canada' },
+            'YUL': { name: 'Montréal-Pierre Elliott Trudeau International Airport', city: 'Montreal', country: 'Canada' },
+            'YYC': { name: 'Calgary International Airport', city: 'Calgary', country: 'Canada' },
+            'YOW': { name: 'Ottawa Macdonald-Cartier International Airport', city: 'Ottawa', country: 'Canada' },
+            
+            // Spain
+            'MAD': { name: 'Adolfo Suárez Madrid-Barajas Airport', city: 'Madrid', country: 'Spain' },
+            'BCN': { name: 'Barcelona-El Prat Airport', city: 'Barcelona', country: 'Spain' },
+            'PMI': { name: 'Palma de Mallorca Airport', city: 'Palma', country: 'Spain' },
+            'LPA': { name: 'Gran Canaria Airport', city: 'Las Palmas', country: 'Spain' },
+            
+            // Italy
+            'FCO': { name: 'Leonardo da Vinci International Airport', city: 'Rome', country: 'Italy' },
+            'MXP': { name: 'Milan Malpensa Airport', city: 'Milan', country: 'Italy' },
+            'VCE': { name: 'Venice Marco Polo Airport', city: 'Venice', country: 'Italy' },
+            'NAP': { name: 'Naples International Airport', city: 'Naples', country: 'Italy' },
+            
+            // Other major international airports
+            'DXB': { name: 'Dubai International Airport', city: 'Dubai', country: 'UAE' },
+            'SIN': { name: 'Singapore Changi Airport', city: 'Singapore', country: 'Singapore' },
+            'HKG': { name: 'Hong Kong International Airport', city: 'Hong Kong', country: 'Hong Kong' },
+            'NRT': { name: 'Narita International Airport', city: 'Tokyo', country: 'Japan' },
+            'ICN': { name: 'Incheon International Airport', city: 'Seoul', country: 'South Korea' },
+            'SYD': { name: 'Sydney Kingsford Smith Airport', city: 'Sydney', country: 'Australia' },
+            'MEL': { name: 'Melbourne Airport', city: 'Melbourne', country: 'Australia' },
+            'GRU': { name: 'São Paulo-Guarulhos International Airport', city: 'São Paulo', country: 'Brazil' },
+            'EZE': { name: 'Ministro Pistarini International Airport', city: 'Buenos Aires', country: 'Argentina' },
+            'JNB': { name: 'O.R. Tambo International Airport', city: 'Johannesburg', country: 'South Africa' },
+            'CAI': { name: 'Cairo International Airport', city: 'Cairo', country: 'Egypt' },
+            'IST': { name: 'Istanbul Airport', city: 'Istanbul', country: 'Turkey' },
+            'DOH': { name: 'Hamad International Airport', city: 'Doha', country: 'Qatar' },
+            'AUH': { name: 'Abu Dhabi International Airport', city: 'Abu Dhabi', country: 'UAE' },
+          };
+          
+          return airportDatabase[iataCode] || { 
+            name: `${iataCode} Airport`, 
+            city: 'Unknown', 
+            country: 'Unknown' 
+          };
+        };
+
         // Generate realistic route information based on location and airline
-        const generateRoute = (country: string, airlineName: string): { origin: string, destination: string } => {
+        const generateRoute = (country: string, airlineName: string): { origin: string, destination: string, originInfo: any, destinationInfo: any } => {
           const majorAirports: { [key: string]: string[] } = {
-            'United States': ['JFK', 'LAX', 'ORD', 'DFW', 'DEN', 'SFO', 'SEA', 'LAS', 'PHX', 'IAH'],
+            'United States': ['JFK', 'LAX', 'ORD', 'DFW', 'DEN', 'SFO', 'SEA', 'LAS', 'PHX', 'IAH', 'MIA', 'ATL', 'BOS', 'MCO'],
             'United Kingdom': ['LHR', 'LGW', 'MAN', 'EDI', 'BHX', 'STN', 'LTN'],
             'Germany': ['FRA', 'MUC', 'DUS', 'TXL', 'HAM', 'STR'],
             'France': ['CDG', 'ORY', 'NCE', 'LYS', 'TLS', 'BOD'],
@@ -242,13 +334,21 @@ export function FlightRadar() {
             'Italy': ['FCO', 'MXP', 'VCE', 'NAP'],
           };
           
-          const airports = majorAirports[country] || ['XXX', 'YYY', 'ZZZ'];
+          const airports = majorAirports[country] || ['JFK', 'LAX', 'LHR'];
           const allAirports = Object.values(majorAirports).flat();
           
-          const origin = airports[Math.floor(Math.random() * airports.length)];
-          const destination = allAirports[Math.floor(Math.random() * allAirports.length)];
+          const originCode = airports[Math.floor(Math.random() * airports.length)];
+          const destinationCode = allAirports[Math.floor(Math.random() * allAirports.length)];
           
-          return { origin, destination };
+          const originInfo = getAirportInfo(originCode);
+          const destinationInfo = getAirportInfo(destinationCode);
+          
+          return { 
+            origin: originCode, 
+            destination: destinationCode,
+            originInfo,
+            destinationInfo
+          };
         };
         
         const route = generateRoute(origin_country || 'Unknown', airlineInfo.name);
@@ -262,6 +362,8 @@ export function FlightRadar() {
           registrationCompany: airlineInfo.company,
           origin: route.origin,
           destination: route.destination,
+          originInfo: route.originInfo,
+          destinationInfo: route.destinationInfo,
           lat: latitude || 0,
           lon: longitude || 0,
           altitude: Math.round((baro_altitude || 0) * 3.28084), // Convert meters to feet
@@ -296,6 +398,8 @@ export function FlightRadar() {
         registrationCompany: 'Demo Aviation',
         origin: 'JFK',
         destination: 'LAX',
+        originInfo: { name: 'John F. Kennedy International Airport', city: 'New York', country: 'United States' },
+        destinationInfo: { name: 'Los Angeles International Airport', city: 'Los Angeles', country: 'United States' },
         lat: userLat + 0.01, // Slightly offset from user location
         lon: userLon + 0.01,
         altitude: 35000,
@@ -677,20 +781,30 @@ export function FlightRadar() {
 
               {/* Flight Route */}
               <div className="flex items-center justify-center gap-4 py-2">
-                <div className="text-center">
+                <div className="text-center flex-1">
                   <div className="text-sm text-muted-foreground">From</div>
                   <div className="font-semibold">{nearestFlight.origin}</div>
+                  {nearestFlight.originInfo && (
+                    <div className="text-xs text-muted-foreground">
+                      {nearestFlight.originInfo.name}
+                    </div>
+                  )}
                 </div>
-                <div className="flex-1 flex items-center justify-center">
-                  <div className="h-px bg-border flex-1"></div>
+                <div className="flex items-center justify-center">
+                  <div className="h-px bg-border w-8"></div>
                   <Plane className="h-4 w-4 mx-2 text-primary" style={{
                     transform: `rotate(${nearestFlight.heading}deg)`
                   }} />
-                  <div className="h-px bg-border flex-1"></div>
+                  <div className="h-px bg-border w-8"></div>
                 </div>
-                <div className="text-center">
+                <div className="text-center flex-1">
                   <div className="text-sm text-muted-foreground">To</div>
                   <div className="font-semibold">{nearestFlight.destination}</div>
+                  {nearestFlight.destinationInfo && (
+                    <div className="text-xs text-muted-foreground">
+                      {nearestFlight.destinationInfo.name}
+                    </div>
+                  )}
                 </div>
               </div>
 
@@ -807,6 +921,11 @@ export function FlightRadar() {
                       <div className="text-xs text-muted-foreground">
                         {flight.origin} → {flight.destination}
                       </div>
+                      {(flight.originInfo || flight.destinationInfo) && (
+                        <div className="text-xs text-muted-foreground mt-1">
+                          {flight.originInfo?.city || flight.origin} → {flight.destinationInfo?.city || flight.destination}
+                        </div>
+                      )}
                     </div>
                   </div>
                   <div className="text-right">
