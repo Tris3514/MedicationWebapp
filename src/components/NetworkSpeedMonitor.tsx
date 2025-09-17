@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Download, Upload, Wifi, RefreshCw, Zap } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -27,24 +27,33 @@ export function NetworkSpeedMonitor({ className }: NetworkSpeedMonitorProps) {
   const [isTestingPing, setIsTestingPing] = useState(false);
   const [testProgress, setTestProgress] = useState(0);
   const [lastTestTime, setLastTestTime] = useState<Date | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  const abortControllerRef = useRef<AbortController | null>(null);
 
   // Test download speed using real HTTP requests
   const testDownloadSpeed = useCallback(async (): Promise<number> => {
-    const testSizes = [1, 2, 5]; // MB
-    const testUrl = 'https://httpbin.org/bytes/'; // Free testing service
+    const testSizes = [1, 2]; // Reduced from 3 to 2 tests
+    const testUrl = 'https://httpbin.org/bytes/';
     
     try {
       setIsTestingDownload(true);
+      setError(null);
       let totalSpeed = 0;
       let validTests = 0;
 
       for (let i = 0; i < testSizes.length; i++) {
-        const sizeBytes = testSizes[i] * 1024 * 1024; // Convert MB to bytes
+        // Check if test was cancelled
+        if (abortControllerRef.current?.signal.aborted) {
+          throw new Error('Test cancelled');
+        }
+
+        const sizeBytes = testSizes[i] * 1024 * 1024;
         const startTime = performance.now();
         
         try {
           const response = await fetch(testUrl + sizeBytes, {
             cache: 'no-cache',
+            signal: abortControllerRef.current?.signal,
             headers: {
               'Cache-Control': 'no-cache',
               'Pragma': 'no-cache'
@@ -52,24 +61,36 @@ export function NetworkSpeedMonitor({ className }: NetworkSpeedMonitorProps) {
           });
           
           if (response.ok) {
-            await response.blob(); // Download the data
+            await response.blob();
             const endTime = performance.now();
-            const duration = (endTime - startTime) / 1000; // Convert to seconds
-            const speedMbps = (sizeBytes * 8) / (duration * 1000000); // Convert to Mbps
+            const duration = (endTime - startTime) / 1000;
+            const speedMbps = (sizeBytes * 8) / (duration * 1000000);
             
             totalSpeed += speedMbps;
             validTests++;
           }
         } catch (error) {
+          if (error instanceof Error && error.name === 'AbortError') {
+            throw error;
+          }
           console.warn(`Download test ${i + 1} failed:`, error);
         }
         
-        setTestProgress(((i + 1) / testSizes.length) * 50); // 50% for download
+        setTestProgress(((i + 1) / testSizes.length) * 50);
+        
+        // Add delay between tests to prevent resource exhaustion
+        if (i < testSizes.length - 1) {
+          await new Promise(resolve => setTimeout(resolve, 500));
+        }
       }
       
       return validTests > 0 ? totalSpeed / validTests : 0;
     } catch (error) {
+      if (error instanceof Error && error.message === 'Test cancelled') {
+        throw error;
+      }
       console.error('Download speed test failed:', error);
+      setError('Download test failed');
       return 0;
     } finally {
       setIsTestingDownload(false);
@@ -78,8 +99,8 @@ export function NetworkSpeedMonitor({ className }: NetworkSpeedMonitorProps) {
 
   // Test upload speed using POST requests
   const testUploadSpeed = useCallback(async (): Promise<number> => {
-    const testSizes = [0.5, 1, 2]; // MB
-    const testUrl = 'https://httpbin.org/post'; // Free testing service
+    const testSizes = [0.5, 1]; // Reduced from 3 to 2 tests
+    const testUrl = 'https://httpbin.org/post';
     
     try {
       setIsTestingUpload(true);
@@ -87,6 +108,11 @@ export function NetworkSpeedMonitor({ className }: NetworkSpeedMonitorProps) {
       let validTests = 0;
 
       for (let i = 0; i < testSizes.length; i++) {
+        // Check if test was cancelled
+        if (abortControllerRef.current?.signal.aborted) {
+          throw new Error('Test cancelled');
+        }
+
         const sizeBytes = testSizes[i] * 1024 * 1024;
         const testData = new Uint8Array(sizeBytes);
         
@@ -96,6 +122,7 @@ export function NetworkSpeedMonitor({ className }: NetworkSpeedMonitorProps) {
           const response = await fetch(testUrl, {
             method: 'POST',
             body: testData,
+            signal: abortControllerRef.current?.signal,
             headers: {
               'Content-Type': 'application/octet-stream',
               'Cache-Control': 'no-cache'
@@ -111,15 +138,27 @@ export function NetworkSpeedMonitor({ className }: NetworkSpeedMonitorProps) {
             validTests++;
           }
         } catch (error) {
+          if (error instanceof Error && error.name === 'AbortError') {
+            throw error;
+          }
           console.warn(`Upload test ${i + 1} failed:`, error);
         }
         
-        setTestProgress(50 + ((i + 1) / testSizes.length) * 30); // 30% for upload
+        setTestProgress(50 + ((i + 1) / testSizes.length) * 30);
+        
+        // Add delay between tests
+        if (i < testSizes.length - 1) {
+          await new Promise(resolve => setTimeout(resolve, 500));
+        }
       }
       
       return validTests > 0 ? totalSpeed / validTests : 0;
     } catch (error) {
+      if (error instanceof Error && error.message === 'Test cancelled') {
+        throw error;
+      }
       console.error('Upload speed test failed:', error);
+      setError('Upload test failed');
       return 0;
     } finally {
       setIsTestingUpload(false);
@@ -129,18 +168,24 @@ export function NetworkSpeedMonitor({ className }: NetworkSpeedMonitorProps) {
   // Test ping/latency
   const testPing = useCallback(async (): Promise<{ ping: number; jitter: number }> => {
     const testUrl = 'https://httpbin.org/get';
-    const pingTests = 5;
-    const pings: number[] = [];
+    const pingTests = 3; // Reduced from 5 to 3 tests
     
     try {
       setIsTestingPing(true);
+      const pings: number[] = [];
       
       for (let i = 0; i < pingTests; i++) {
+        // Check if test was cancelled
+        if (abortControllerRef.current?.signal.aborted) {
+          throw new Error('Test cancelled');
+        }
+
         const startTime = performance.now();
         
         try {
           const response = await fetch(testUrl + '?t=' + Date.now(), {
             cache: 'no-cache',
+            signal: abortControllerRef.current?.signal,
             headers: { 'Cache-Control': 'no-cache' }
           });
           
@@ -150,13 +195,18 @@ export function NetworkSpeedMonitor({ className }: NetworkSpeedMonitorProps) {
             pings.push(ping);
           }
         } catch (error) {
+          if (error instanceof Error && error.name === 'AbortError') {
+            throw error;
+          }
           console.warn(`Ping test ${i + 1} failed:`, error);
         }
         
-        setTestProgress(80 + ((i + 1) / pingTests) * 20); // Final 20%
+        setTestProgress(80 + ((i + 1) / pingTests) * 20);
         
-        // Small delay between ping tests
-        await new Promise(resolve => setTimeout(resolve, 100));
+        // Increased delay between ping tests to prevent resource exhaustion
+        if (i < pingTests - 1) {
+          await new Promise(resolve => setTimeout(resolve, 300));
+        }
       }
       
       if (pings.length > 0) {
@@ -167,7 +217,11 @@ export function NetworkSpeedMonitor({ className }: NetworkSpeedMonitorProps) {
       
       return { ping: 0, jitter: 0 };
     } catch (error) {
+      if (error instanceof Error && error.message === 'Test cancelled') {
+        throw error;
+      }
       console.error('Ping test failed:', error);
+      setError('Ping test failed');
       return { ping: 0, jitter: 0 };
     } finally {
       setIsTestingPing(false);
@@ -176,8 +230,17 @@ export function NetworkSpeedMonitor({ className }: NetworkSpeedMonitorProps) {
 
   // Run complete speed test
   const runSpeedTest = useCallback(async () => {
+    // Cancel any existing test
+    if (abortControllerRef.current) {
+      abortControllerRef.current.abort();
+    }
+    
+    // Create new abort controller
+    abortControllerRef.current = new AbortController();
+    
     const startTime = Date.now();
     setTestProgress(0);
+    setError(null);
     
     try {
       // Test download speed
@@ -213,9 +276,15 @@ export function NetworkSpeedMonitor({ className }: NetworkSpeedMonitorProps) {
       }
       
     } catch (error) {
+      if (error instanceof Error && error.message === 'Test cancelled') {
+        console.log('Speed test was cancelled');
+        return;
+      }
       console.error('Speed test failed:', error);
+      setError('Speed test failed. Please try again.');
     } finally {
       setTestProgress(0);
+      abortControllerRef.current = null;
     }
   }, [testDownloadSpeed, testUploadSpeed, testPing, isAuthenticated, setData]);
 
@@ -249,19 +318,21 @@ export function NetworkSpeedMonitor({ className }: NetworkSpeedMonitorProps) {
     }
   }, [isAuthenticated, userData, getData]);
 
-  // Auto-test on component mount if no recent data
+  // Auto-test on component mount if no recent data (disabled to prevent resource exhaustion)
   useEffect(() => {
-    if (!currentResult || !lastTestTime) {
-      // Run initial test after a short delay
-      setTimeout(() => runSpeedTest(), 1000);
-    } else {
-      // Check if data is older than 10 minutes
-      const tenMinutesAgo = new Date(Date.now() - 10 * 60 * 1000);
-      if (lastTestTime < tenMinutesAgo) {
-        setTimeout(() => runSpeedTest(), 1000);
-      }
-    }
+    // Disabled auto-testing to prevent resource exhaustion
+    // Users can manually trigger tests when needed
+    return;
   }, [currentResult, lastTestTime, runSpeedTest]);
+
+  // Cleanup on unmount
+  useEffect(() => {
+    return () => {
+      if (abortControllerRef.current) {
+        abortControllerRef.current.abort();
+      }
+    };
+  }, []);
 
   const isAnyTestRunning = isTestingDownload || isTestingUpload || isTestingPing;
   const getSpeedColor = (speed: number) => {
@@ -295,6 +366,13 @@ export function NetworkSpeedMonitor({ className }: NetworkSpeedMonitorProps) {
           {isAnyTestRunning ? "Testing..." : "Test"}
         </Button>
       </div>
+
+      {/* Error Display */}
+      {error && (
+        <div className="text-center p-2 bg-red-500/10 border border-red-500/20 rounded-md">
+          <div className="text-sm text-red-400">{error}</div>
+        </div>
+      )}
 
       {/* Speed Results */}
       {currentResult ? (
@@ -352,6 +430,11 @@ export function NetworkSpeedMonitor({ className }: NetworkSpeedMonitorProps) {
             <div className="text-sm text-muted-foreground">
               {isAnyTestRunning ? "Running speed test..." : "Click Test to measure speed"}
             </div>
+            {error && (
+              <div className="text-xs text-red-400 mt-2">
+                {error}
+              </div>
+            )}
           </div>
         </div>
       )}
