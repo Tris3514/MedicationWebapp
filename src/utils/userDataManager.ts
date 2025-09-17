@@ -21,6 +21,9 @@ export interface UserData {
   // Network Speed Data
   networkSpeedTest: any;
   
+  // Dashboard Data
+  dashboardCards: any[];
+  
   // Theme preference (global, but can be per-user)
   theme: string | null;
 }
@@ -112,6 +115,7 @@ export function getDefaultUserData(): UserData {
     medications: [],
     lastCheckDate: null,
     networkSpeedTest: null,
+    dashboardCards: [],
     theme: null,
   };
 }

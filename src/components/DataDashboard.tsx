@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import {
@@ -23,6 +23,7 @@ import { BarChart3, PieChart, TrendingUp, Database, Settings, GripVertical, More
 import { cn } from "@/lib/utils";
 import { WorldClock } from "@/components/WorldClock";
 import { NetworkSpeedMonitor } from "@/components/NetworkSpeedMonitor";
+import { useUserData } from "@/hooks/useUserData";
 
 export type CardSize = "2x1" | "2x2";
 
@@ -289,13 +290,49 @@ const cardPrefabs: Omit<DashboardCard, 'id'>[] = [
 ];
 
 export function DataDashboard() {
-  const [cards, setCards] = useState(initialCards);
+  const { isAuthenticated, getData, setData } = useUserData();
+  const [cards, setCards] = useState<DashboardCard[]>(initialCards);
   const [draggedCard, setDraggedCard] = useState<string | null>(null);
   const [dragOverIndex, setDragOverIndex] = useState<number | null>(null);
   const [isRenamingCard, setIsRenamingCard] = useState<string | null>(null);
   const [renameValue, setRenameValue] = useState("");
   const [showPrefabsSidebar, setShowPrefabsSidebar] = useState(false);
   const [draggedPrefab, setDraggedPrefab] = useState<number | null>(null);
+
+  // Load saved dashboard cards on component mount
+  useEffect(() => {
+    if (isAuthenticated) {
+      // Load from user-specific data
+      const savedCards = getData('dashboardCards') || [];
+      if (savedCards.length > 0) {
+        setCards(savedCards);
+      }
+    } else {
+      // Fallback to localStorage for non-authenticated users
+      const savedData = localStorage.getItem('data-dashboard-cards');
+      if (savedData) {
+        try {
+          const parsedCards = JSON.parse(savedData);
+          setCards(parsedCards);
+        } catch (error) {
+          console.error("Failed to load dashboard cards from storage:", error);
+        }
+      }
+    }
+  }, [isAuthenticated, getData]);
+
+  // Save dashboard cards whenever they change
+  useEffect(() => {
+    if (cards.length > 0) {
+      if (isAuthenticated) {
+        // Save to user-specific data
+        setData('dashboardCards', cards);
+      } else {
+        // Fallback to localStorage for non-authenticated users
+        localStorage.setItem('data-dashboard-cards', JSON.stringify(cards));
+      }
+    }
+  }, [cards, isAuthenticated, setData]);
 
   const generateId = () => {
     return Date.now().toString() + Math.random().toString(36).substr(2, 9);
